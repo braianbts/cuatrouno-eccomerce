@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, Product } from '@/lib/supabase'
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, LogOut, Package, BarChart2, ShoppingBag, TrendingDown, RefreshCw, DollarSign, X, Check, ChevronDown } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, LogOut, Package, BarChart2, ShoppingBag, TrendingDown, RefreshCw, DollarSign, X, Check, ChevronDown, Activity } from 'lucide-react'
+import Link from 'next/link'
 import ProductForm from '@/components/admin/ProductForm'
 import Image from 'next/image'
 
@@ -876,6 +877,13 @@ export default function AdminPage() {
               </button>
             )
           })}
+          <Link
+            href="/admin/analytics"
+            className="flex items-center gap-2 px-4 py-3 text-xs font-black uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
+          >
+            <Activity size={14} />
+            Visitas
+          </Link>
         </div>
       </div>
 
