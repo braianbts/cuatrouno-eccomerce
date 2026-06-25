@@ -120,112 +120,162 @@ const selectCls = inputCls
 
 // ─── Venta Form ──────────────────────────────────────────────────────────────
 
+type LineItem = { producto: string; categoria: string; cantidad: number; precio_unitario: number; costo: number; selectedProduct: Product | null; query: string }
+const emptyLine = (): LineItem => ({ producto: '', categoria: 'proteinas', cantidad: 1, precio_unitario: 0, costo: 0, selectedProduct: null, query: '' })
+
 function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
-  const [form, setForm] = useState({ fecha: localDate(), producto: '', categoria: 'proteinas', cantidad: 1, precio_unitario: 0, metodo_pago: 'mercadopago', costo: 0, notas: '' })
+  const [fecha, setFecha] = useState(localDate())
+  const [metodo_pago, setMetodoPago] = useState('mercadopago')
+  const [notas, setNotas] = useState('')
+  const [descuento, setDescuento] = useState(0)
+  const [items, setItems] = useState<LineItem[]>([emptyLine()])
   const [saving, setSaving] = useState(false)
   const [allProducts, setAllProducts] = useState<Product[]>([])
-  const [suggestions, setSuggestions] = useState<Product[]>([])
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [activeIdx, setActiveIdx] = useState<number | null>(null)
 
   useEffect(() => {
     supabase.from('products').select('*').eq('active', true).order('name').then(({ data }) => setAllProducts(data || []))
   }, [])
 
-  const handleProductInput = (val: string) => {
-    setForm(f => ({ ...f, producto: val }))
-    setSelectedProduct(null)
-    if (val.length > 1) {
-      const q = val.toLowerCase()
-      setSuggestions(allProducts.filter(p => p.name.toLowerCase().includes(q)).slice(0, 6))
-      setShowSuggestions(true)
-    } else {
-      setShowSuggestions(false)
-    }
+  const updateItem = (i: number, patch: Partial<LineItem>) =>
+    setItems(prev => prev.map((it, idx) => idx === i ? { ...it, ...patch } : it))
+
+  const handleQuery = (i: number, val: string) => {
+    updateItem(i, { query: val, producto: val, selectedProduct: null })
+    setActiveIdx(i)
   }
 
-  const selectProduct = (p: Product) => {
-    setSelectedProduct(p)
-    setForm(f => ({ ...f, producto: p.name, categoria: p.category || 'otros', precio_unitario: p.price }))
-    setShowSuggestions(false)
+  const selectProduct = (i: number, p: Product) => {
+    updateItem(i, { query: p.name, producto: p.name, categoria: p.category || 'otros', precio_unitario: p.price, selectedProduct: p })
+    setActiveIdx(null)
   }
 
-  const total = form.precio_unitario * form.cantidad
+  const suggestions = (i: number) => {
+    const q = items[i].query.toLowerCase()
+    return q.length > 1 ? allProducts.filter(p => p.name.toLowerCase().includes(q)).slice(0, 6) : []
+  }
+
+  const subtotal = items.reduce((s, it) => s + it.precio_unitario * it.cantidad, 0)
+  const total = Math.max(0, subtotal - descuento)
 
   const save = async () => {
-    if (!form.producto || !form.precio_unitario) return
+    const valid = items.filter(it => it.producto && it.precio_unitario > 0)
+    if (valid.length === 0) return
     setSaving(true)
-    await supabase.from('ventas').insert({ ...form, total, precio_unitario: Number(form.precio_unitario), costo: Number(form.costo), cantidad: Number(form.cantidad) })
-    // Decrement stock if product selected from catalog
-    if (selectedProduct) {
-      const newStock = Math.max(0, (selectedProduct.stock || 0) - Number(form.cantidad))
-      await supabase.from('products').update({ stock: newStock }).eq('id', selectedProduct.id)
+
+    for (const it of valid) {
+      await supabase.from('ventas').insert({
+        fecha, producto: it.producto, categoria: it.categoria,
+        cantidad: it.cantidad, precio_unitario: it.precio_unitario,
+        costo: it.costo, total: it.precio_unitario * it.cantidad,
+        metodo_pago, notas,
+      })
+      if (it.selectedProduct) {
+        const newStock = Math.max(0, (it.selectedProduct.stock || 0) - it.cantidad)
+        await supabase.from('products').update({ stock: newStock }).eq('id', it.selectedProduct.id)
+      }
     }
+
+    if (descuento > 0) {
+      await supabase.from('ventas').insert({
+        fecha, producto: 'Descuento', categoria: 'otros',
+        cantidad: 1, precio_unitario: -descuento, costo: 0,
+        total: -descuento, metodo_pago, notas: '',
+      })
+    }
+
     setSaving(false)
     onSave()
   }
 
   return (
     <Modal title="Nueva Venta" onClose={onClose}>
-      <Field label="Fecha"><input type="date" className={inputCls} value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} /></Field>
-      <Field label="Producto">
-        <div className="relative">
-          <input
-            type="text"
-            className={inputCls}
-            placeholder="Buscar producto del catálogo..."
-            value={form.producto}
-            onChange={e => handleProductInput(e.target.value)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-            onFocus={() => form.producto.length > 1 && setShowSuggestions(true)}
-          />
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-lg overflow-hidden shadow-xl">
-              {suggestions.map(p => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onMouseDown={() => selectProduct(p)}
-                  className="w-full text-left px-3 py-2 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-3"
-                >
-                  <div>
-                    <p className="text-white text-sm font-semibold">{p.name}</p>
-                    <p className="text-zinc-400 text-xs">{p.category} · stock: {p.stock}</p>
-                  </div>
-                  <p className="text-yellow-400 text-sm font-black flex-shrink-0">${p.price.toLocaleString('es-AR')}</p>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        {selectedProduct && (
-          <p className="text-xs text-green-400 mt-1">✓ Stock actual: {selectedProduct.stock} u · quedará: {Math.max(0, selectedProduct.stock - form.cantidad)} u</p>
-        )}
-      </Field>
-      <Field label="Categoría">
-        <select className={selectCls} value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}>
-          {['proteinas','creatina','pre-workout','vitaminas','quemadores','aminoacidos','indumentaria','otros'].map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Cantidad"><input type="number" className={inputCls} min="1" value={form.cantidad} onChange={e => setForm(f => ({ ...f, cantidad: Number(e.target.value) }))} /></Field>
-        <Field label="Precio unitario"><input type="number" className={inputCls} placeholder="0" value={form.precio_unitario || ''} onChange={e => setForm(f => ({ ...f, precio_unitario: Number(e.target.value) }))} /></Field>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Costo unitario"><input type="number" className={inputCls} placeholder="0" value={form.costo || ''} onChange={e => setForm(f => ({ ...f, costo: Number(e.target.value) }))} /></Field>
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <Field label="Fecha"><input type="date" className={inputCls} value={fecha} onChange={e => setFecha(e.target.value)} /></Field>
         <Field label="Método de pago">
-          <select className={selectCls} value={form.metodo_pago} onChange={e => setForm(f => ({ ...f, metodo_pago: e.target.value }))}>
+          <select className={selectCls} value={metodo_pago} onChange={e => setMetodoPago(e.target.value)}>
             <option value="efectivo">Efectivo</option>
             <option value="mercadopago">MercadoPago</option>
-            <option value="tiendanube">TiendaNube</option>
             <option value="transferencia">Transferencia</option>
+            <option value="tiendanube">TiendaNube</option>
           </select>
         </Field>
       </div>
-      {total > 0 && <div className="bg-zinc-800 rounded-lg px-3 py-2 mb-3 flex justify-between text-sm"><span className="text-zinc-400">Total</span><span className="text-yellow-400 font-black">{fmt(total)}</span></div>}
-      <Field label="Notas (opcional)"><input type="text" className={inputCls} value={form.notas} onChange={e => setForm(f => ({ ...f, notas: e.target.value }))} /></Field>
+
+      <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-2">Productos</p>
+      <div className="space-y-3 mb-3">
+        {items.map((it, i) => (
+          <div key={i} className="bg-zinc-800 rounded-xl p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  className={inputCls}
+                  placeholder="Buscar producto..."
+                  value={it.query}
+                  onChange={e => handleQuery(i, e.target.value)}
+                  onFocus={() => it.query.length > 1 && setActiveIdx(i)}
+                  onBlur={() => setTimeout(() => setActiveIdx(null), 150)}
+                />
+                {activeIdx === i && suggestions(i).length > 0 && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-lg overflow-hidden shadow-xl">
+                    {suggestions(i).map(p => (
+                      <button key={p.id} type="button" onMouseDown={() => selectProduct(i, p)}
+                        className="w-full text-left px-3 py-2 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-white text-sm font-semibold">{p.name}</p>
+                          <p className="text-zinc-400 text-xs">{p.category} · stock: {p.stock}</p>
+                        </div>
+                        <p className="text-yellow-400 text-sm font-black flex-shrink-0">${p.price.toLocaleString('es-AR')}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {items.length > 1 && (
+                <button type="button" onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
+                  className="text-zinc-500 hover:text-red-400 transition-colors text-lg leading-none flex-shrink-0">×</button>
+              )}
+            </div>
+            {it.selectedProduct && (
+              <p className="text-xs text-green-400">✓ Stock: {it.selectedProduct.stock} u → quedará: {Math.max(0, it.selectedProduct.stock - it.cantidad)} u</p>
+            )}
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Cant."><input type="number" className={inputCls} min="1" value={it.cantidad} onChange={e => updateItem(i, { cantidad: Number(e.target.value) })} /></Field>
+              <Field label="Precio"><input type="number" className={inputCls} placeholder="0" value={it.precio_unitario || ''} onChange={e => updateItem(i, { precio_unitario: Number(e.target.value) })} /></Field>
+              <Field label="Costo"><input type="number" className={inputCls} placeholder="0" value={it.costo || ''} onChange={e => updateItem(i, { costo: Number(e.target.value) })} /></Field>
+            </div>
+            {it.precio_unitario > 0 && (
+              <p className="text-right text-yellow-400 text-xs font-black">{fmt(it.precio_unitario * it.cantidad)}</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <button type="button" onClick={() => setItems(prev => [...prev, emptyLine()])}
+        className="w-full border border-dashed border-zinc-600 hover:border-yellow-400 text-zinc-400 hover:text-yellow-400 text-xs font-black py-2 rounded-xl mb-4 transition-colors">
+        + Agregar producto
+      </button>
+
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <Field label="Descuento ($)">
+          <input type="number" className={inputCls} placeholder="0" value={descuento || ''} onChange={e => setDescuento(Number(e.target.value))} />
+        </Field>
+        <Field label="Notas">
+          <input type="text" className={inputCls} value={notas} onChange={e => setNotas(e.target.value)} />
+        </Field>
+      </div>
+
+      {subtotal > 0 && (
+        <div className="bg-zinc-800 rounded-lg px-3 py-2 mb-3 space-y-1 text-sm">
+          <div className="flex justify-between text-zinc-400"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
+          {descuento > 0 && <div className="flex justify-between text-red-400"><span>Descuento</span><span>−{fmt(descuento)}</span></div>}
+          <div className="flex justify-between text-yellow-400 font-black border-t border-zinc-700 pt-1 mt-1"><span>Total</span><span>{fmt(total)}</span></div>
+        </div>
+      )}
+
       <button onClick={save} disabled={saving} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-black font-black py-3 rounded-xl mt-2">
-        {saving ? 'Guardando...' : 'Guardar Venta'}
+        {saving ? 'Guardando...' : `Guardar Venta${items.length > 1 ? ` (${items.length} productos)` : ''}`}
       </button>
     </Modal>
   )
