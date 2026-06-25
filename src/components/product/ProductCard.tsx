@@ -61,8 +61,11 @@ export default function ProductCard({ product }: Props) {
               </span>
             )}
           </div>
-          <p className="text-[8px] font-bold uppercase tracking-wide mb-2" style={{ color: '#16a34a' }}>
+          <p className="text-[8px] font-bold uppercase tracking-wide mb-0.5" style={{ color: '#16a34a' }}>
             💵 5% off en efectivo · ${Math.round(product.price * 0.95).toLocaleString('es-AR')}
+          </p>
+          <p className="text-[8px] font-bold uppercase tracking-wide mb-2" style={{ color: '#2563eb' }}>
+            💳 3 cuotas de ${Math.ceil(product.price / 0.9077 / 3).toLocaleString('es-AR')} s/interés
           </p>
 
           <button

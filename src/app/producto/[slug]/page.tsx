@@ -161,12 +161,21 @@ export default function ProductoPage() {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3 mb-8 pb-8 border-b border-black/5">
-              <div className="h-px flex-1 bg-black/5" />
-              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#16a34a' }}>
-                efectivo · ${Math.round(product.price * 0.95).toLocaleString('es-AR')} <span className="opacity-60 font-normal normal-case tracking-normal">— 5% off</span>
-              </span>
-              <div className="h-px flex-1 bg-black/5" />
+            <div className="flex flex-col gap-2 mb-8 pb-8 border-b border-black/5">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-black/5" />
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#16a34a' }}>
+                  💵 efectivo · ${Math.round(product.price * 0.95).toLocaleString('es-AR')} <span className="opacity-60 font-normal normal-case tracking-normal">— 5% off</span>
+                </span>
+                <div className="h-px flex-1 bg-black/5" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-black/5" />
+                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#2563eb' }}>
+                  💳 3 cuotas de ${Math.ceil(product.price / 0.9077 / 3).toLocaleString('es-AR')} <span className="opacity-60 font-normal normal-case tracking-normal">— sin interés</span>
+                </span>
+                <div className="h-px flex-1 bg-black/5" />
+              </div>
             </div>
 
             {/* Flavor / variant selector */}
