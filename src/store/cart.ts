@@ -91,7 +91,7 @@ export const useCart = create<CartStore>()(
           msg += `\n✅ *Total: $${base.toLocaleString('es-AR')}*`
         } else if (paymentMethod === 'cuotas') {
           const cuota = Math.ceil(base / 0.894 / 3)
-          msg += `\n💳 *Método de pago: 3 cuotas sin interés (Mercado Pago)*`
+          msg += `\n💳 *Método de pago: 3 cuotas (Mercado Pago)*`
           msg += `\n✅ *3 cuotas de $${cuota.toLocaleString('es-AR')}* (no disponible con Amex)`
         }
 

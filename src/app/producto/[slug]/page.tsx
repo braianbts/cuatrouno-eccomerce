@@ -172,7 +172,7 @@ export default function ProductoPage() {
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-black/5" />
                 <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#2563eb' }}>
-                  💳 3 cuotas de ${Math.ceil(product.price / 0.894 / 3).toLocaleString('es-AR')} <span className="opacity-60 font-normal normal-case tracking-normal">— sin interés</span>
+                  💳 3 cuotas de ${Math.ceil(product.price / 0.894 / 3).toLocaleString('es-AR')} <span className="opacity-60 font-normal normal-case tracking-normal">— en 3 cuotas</span>
                 </span>
                 <div className="h-px flex-1 bg-black/5" />
               </div>

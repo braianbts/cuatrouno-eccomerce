@@ -108,7 +108,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               {[
                 { id: 'efectivo' as PayMethod, label: '💵 Efectivo', sub: `$${precioEfectivo.toLocaleString('es-AR')} — 5% off`, color: '#16a34a' },
                 { id: 'transferencia' as PayMethod, label: '🏦 Transferencia', sub: `$${t.toLocaleString('es-AR')}`, color: '#a16207' },
-                { id: 'cuotas' as PayMethod, label: '💳 3 cuotas s/interés', sub: `3 × $${precioCuota.toLocaleString('es-AR')} · no Amex`, color: '#2563eb' },
+                { id: 'cuotas' as PayMethod, label: '💳 3 cuotas', sub: `3 × $${precioCuota.toLocaleString('es-AR')} · no Amex`, color: '#2563eb' },
               ].map(({ id, label, sub, color }) => (
                 <button
                   key={id}

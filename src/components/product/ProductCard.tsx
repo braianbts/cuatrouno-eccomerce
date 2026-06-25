@@ -66,7 +66,7 @@ export default function ProductCard({ product }: Props) {
             <span className="text-[9px] font-black" style={{ color: '#16a34a' }}>${Math.round(product.price * 0.95).toLocaleString('es-AR')}</span>
           </div>
           <div className="flex items-center justify-between mb-2 px-1.5 py-1 rounded" style={{ backgroundColor: 'rgba(37,99,235,0.08)' }}>
-            <span className="text-[9px] font-black uppercase tracking-wide" style={{ color: '#2563eb' }}>💳 3 cuotas s/interés*</span>
+            <span className="text-[9px] font-black uppercase tracking-wide" style={{ color: '#2563eb' }}>💳 3 cuotas</span>
             <span className="text-[9px] font-black" style={{ color: '#2563eb' }}>3×${Math.ceil(product.price / 0.894 / 3).toLocaleString('es-AR')}</span>
           </div>
 

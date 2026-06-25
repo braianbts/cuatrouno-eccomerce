@@ -82,7 +82,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
           <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-widest">💵 5% OFF en efectivo</span>
           <span className="text-white/30 text-[10px] hidden sm:inline">|</span>
-          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-widest">💳 3 cuotas sin interés</span>
+          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-widest">💳 3 cuotas</span>
           <span className="text-white/30 text-[10px] hidden sm:inline">|</span>
           <span className="text-white/70 text-[10px] sm:text-[11px] font-medium normal-case tracking-normal">Consultá en cada producto</span>
         </div>
