@@ -6,7 +6,14 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'acdn-us.mitiendanube.com',
-        pathname: '/stores/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.shopify.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.myshopify.com',
       },
       {
         protocol: 'https',
