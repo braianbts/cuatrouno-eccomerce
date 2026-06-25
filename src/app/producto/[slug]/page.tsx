@@ -1,5 +1,8 @@
 'use client'
 
+// Dynamic metadata is handled server-side via generateMetadata in a separate server component.
+// For client pages, OG is set globally in layout.tsx.
+
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase, Product } from '@/lib/supabase'
 import ProductCard from '@/components/product/ProductCard'
@@ -5,6 +6,36 @@ import { ArrowRight, Shield, Zap, Truck } from 'lucide-react'
 import HeroCarousel from '@/components/home/HeroCarousel'
 import TrainingCTA from '@/components/home/TrainingCTA'
 import BrandMarquee from '@/components/home/BrandMarquee'
+
+export const metadata: Metadata = {
+  title: 'Cuatrouno Suplementos | Tienda de Suplementos en Escobar',
+  description: 'Comprá suplementos deportivos de calidad en Escobar, Buenos Aires. Proteínas, creatina, pre-workout, vitaminas y más. Envíos a todo el país. Asesoramiento personalizado.',
+  alternates: { canonical: 'https://cuatrouno-eccomerce.vercel.app' },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'Cuatrouno Suplementos',
+  description: 'Tienda de suplementos deportivos en Escobar, Buenos Aires.',
+  url: 'https://cuatrouno-eccomerce.vercel.app',
+  telephone: '+5493484689931',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Escobar',
+    addressRegion: 'Buenos Aires',
+    addressCountry: 'AR',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: -34.3486727, longitude: -58.794372 },
+  image: 'https://cuatrouno-eccomerce.vercel.app/pop-up.jpg',
+  sameAs: ['https://www.instagram.com/cuatrouno_suplementos/'],
+  openingHoursSpecification: {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    opens: '09:00',
+    closes: '20:00',
+  },
+}
 
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
@@ -30,6 +61,7 @@ export default async function HomePage() {
 
   return (
     <div className="bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Hero carousel */}
       <HeroCarousel />
 

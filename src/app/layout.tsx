@@ -7,9 +7,42 @@ import CreatinaToast from "@/components/CreatinaToast";
 
 const inter = Inter({ subsets: ["latin"] });
 
+const SITE_URL = 'https://cuatrouno-eccomerce.vercel.app'
+
 export const metadata: Metadata = {
-  title: "Cuatrouno Suplementos",
-  description: "Suplementos deportivos de calidad. Proteínas, creatina, pre-workout y más.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Cuatrouno Suplementos | Escobar, Buenos Aires',
+    template: '%s | Cuatrouno Suplementos',
+  },
+  description: 'Tienda de suplementos deportivos en Escobar, Buenos Aires. Proteínas, creatina, pre-workout, vitaminas y más. Asesoramiento personalizado y envíos a todo el país.',
+  keywords: ['suplementos deportivos', 'proteína whey', 'creatina', 'pre-workout', 'suplementos Escobar', 'suplementos Buenos Aires', 'cuatrouno suplementos'],
+  authors: [{ name: 'Cuatrouno Suplementos' }],
+  creator: 'Cuatrouno Suplementos',
+  publisher: 'Cuatrouno Suplementos',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'es_AR',
+    url: SITE_URL,
+    siteName: 'Cuatrouno Suplementos',
+    title: 'Cuatrouno Suplementos | Escobar, Buenos Aires',
+    description: 'Tienda de suplementos deportivos en Escobar, Buenos Aires. Proteínas, creatina, pre-workout, vitaminas y más. Asesoramiento personalizado.',
+    images: [{ url: '/pop-up.jpg', width: 1200, height: 630, alt: 'Cuatrouno Suplementos' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cuatrouno Suplementos | Escobar, Buenos Aires',
+    description: 'Tienda de suplementos deportivos en Escobar. Proteínas, creatina, pre-workout y más.',
+    images: ['/pop-up.jpg'],
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
