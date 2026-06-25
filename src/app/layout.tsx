@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import CreatinaToast from "@/components/CreatinaToast";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CreatinaToast />
         <Navbar />
         <main>{children}</main>
+        <Analytics />
 
         {/* Interactive map */}
         <div className="relative">
