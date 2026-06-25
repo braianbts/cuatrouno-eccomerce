@@ -949,7 +949,7 @@ export default function AdminPage() {
         <div className="relative w-full max-w-sm">
           {/* Logo */}
           <div className="text-center mb-10">
-            <img src="/logo.png" alt="Cuatrouno" className="h-24 w-auto mx-auto mb-4 drop-shadow-lg" />
+            <img src="/logo.png" alt="Cuatrouno" className="h-40 w-auto mx-auto mb-5 drop-shadow-lg" />
             <p className="text-zinc-600 text-[10px] uppercase tracking-[0.35em]">Panel de administración</p>
           </div>
 
