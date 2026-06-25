@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
 }
 
 @theme inline {
@@ -12,15 +12,55 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: #ffffff;
+  color: #0a0a0a;
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+* { box-sizing: border-box; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.animate-ticker { animation: ticker 20s linear infinite; }
+
+@keyframes goldshine {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes nav-ray {
+  0%   { transform: translateX(-100%) scaleX(0.3); opacity: 0; }
+  10%  { opacity: 1; }
+  50%  { transform: translateX(50vw) scaleX(1); opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(200%) scaleX(0.3); opacity: 0; }
+}
+.nav-ray {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 40%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #C41515 30%, #ff4444 50%, #C41515 70%, transparent 100%);
+  animation: nav-ray 3s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(0.5px);
+}
+.nav-ray-glow {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 40%;
+  height: 8px;
+  background: linear-gradient(90deg, transparent 0%, rgba(196,21,21,0.3) 30%, rgba(255,60,60,0.5) 50%, rgba(196,21,21,0.3) 70%, transparent 100%);
+  animation: nav-ray 3s ease-in-out infinite;
+  pointer-events: none;
+  filter: blur(4px);
 }
