@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import CreatinaToast from "@/components/CreatinaToast";
 import { Analytics } from "@vercel/analytics/react";
+import PageTracker from "@/components/PageTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AnnouncementBar />
         <CreatinaToast />
         <Navbar />
+        <PageTracker />
         <main>{children}</main>
         <Analytics />
 

@@ -818,17 +818,14 @@ function ProductosTab() {
 
 // ─── Visitas Tab ──────────────────────────────────────────────────────────────
 
-interface AnalyticsStats {
-  totalVisitors?: { value: number }
-  pageviews?: { value: number }
-  avgDuration?: { value: number }
-  bounceRate?: { value: number }
-}
-interface PageRow { key: string; total: number }
+interface PageRow { path: string; total: number }
+interface DayRow { day: string; total: number }
 
 function VisitasTab() {
-  const [stats, setStats] = useState<AnalyticsStats | null>(null)
+  const [totalViews, setTotalViews] = useState<number | null>(null)
+  const [todayViews, setTodayViews] = useState<number | null>(null)
   const [pages, setPages] = useState<PageRow[]>([])
+  const [days, setDays] = useState<DayRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshed, setRefreshed] = useState<Date | null>(null)
@@ -837,11 +834,39 @@ function VisitasTab() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/analytics')
-      const json = await res.json()
-      if (json.error) throw new Error(json.error)
-      setStats(json.stats)
-      setPages(json.pages?.data || [])
+      const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0)
+
+      const [totalRes, todayRes, pagesRes, daysRes] = await Promise.all([
+        supabase.from('page_views').select('id', { count: 'exact', head: true }).gte('created_at', since30),
+        supabase.from('page_views').select('id', { count: 'exact', head: true }).gte('created_at', todayStart.toISOString()),
+        supabase.from('page_views').select('path').gte('created_at', since30),
+        supabase.from('page_views').select('created_at').gte('created_at', since30),
+      ])
+
+      setTotalViews(totalRes.count ?? 0)
+      setTodayViews(todayRes.count ?? 0)
+
+      // aggregate pages
+      const pathMap: Record<string, number> = {}
+      for (const row of pagesRes.data || []) {
+        pathMap[row.path] = (pathMap[row.path] || 0) + 1
+      }
+      setPages(Object.entries(pathMap).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([path, total]) => ({ path, total })))
+
+      // aggregate by day (last 7 days)
+      const dayMap: Record<string, number> = {}
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0)
+        dayMap[d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' })] = 0
+      }
+      for (const row of daysRes.data || []) {
+        const d = new Date(row.created_at)
+        const key = d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric' })
+        if (key in dayMap) dayMap[key]++
+      }
+      setDays(Object.entries(dayMap).map(([day, total]) => ({ day, total })))
+
       setRefreshed(new Date())
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error al cargar datos')
@@ -851,12 +876,8 @@ function VisitasTab() {
 
   useEffect(() => { load() }, [])
 
-  const fmtN = (n?: number) => n != null ? n.toLocaleString('es-AR') : '—'
-  const fmtSecs = (ms?: number) => {
-    if (ms == null) return '—'
-    const s = Math.round(ms / 1000)
-    return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`
-  }
+  const fmtN = (n: number | null) => n != null ? n.toLocaleString('es-AR') : '—'
+  const maxDay = Math.max(...days.map(d => d.total), 1)
 
   return (
     <div className="space-y-6">
@@ -873,41 +894,59 @@ function VisitasTab() {
 
       {error && <div className="bg-red-950 border border-red-800 text-red-400 text-sm px-4 py-3 rounded-xl">{error}</div>}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Visitantes únicos', value: fmtN(stats?.totalVisitors?.value), color: 'text-yellow-400' },
-          { label: 'Vistas de página', value: fmtN(stats?.pageviews?.value), color: 'text-blue-400' },
-          { label: 'Tiempo promedio', value: fmtSecs(stats?.avgDuration?.value), color: 'text-green-400' },
-          { label: 'Tasa de rebote', value: stats?.bounceRate?.value != null ? `${Math.round(stats.bounceRate.value)}%` : '—', color: 'text-orange-400' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5">
-            <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-2">{label}</p>
-            <p className={`font-black text-2xl ${loading ? 'animate-pulse text-zinc-700' : color}`}>{loading ? '···' : value}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5">
+          <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-2">Vistas hoy</p>
+          <p className={`font-black text-3xl ${loading ? 'animate-pulse text-zinc-700' : 'text-yellow-400'}`}>{loading ? '···' : fmtN(todayViews)}</p>
+        </div>
+        <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5">
+          <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-2">Vistas últimos 30 días</p>
+          <p className={`font-black text-3xl ${loading ? 'animate-pulse text-zinc-700' : 'text-blue-400'}`}>{loading ? '···' : fmtN(totalViews)}</p>
+        </div>
       </div>
 
+      {/* Bar chart last 7 days */}
+      <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6">
+        <h3 className="text-white font-black text-sm uppercase tracking-widest mb-5">Últimos 7 días</h3>
+        {loading ? (
+          <div className="flex items-end gap-2 h-24">{[...Array(7)].map((_, i) => <div key={i} className="flex-1 bg-zinc-700 rounded animate-pulse" style={{ height: `${30 + i * 10}%` }} />)}</div>
+        ) : (
+          <div className="flex items-end gap-2 h-24">
+            {days.map(({ day, total }) => (
+              <div key={day} className="flex-1 flex flex-col items-center gap-1">
+                <span className="text-zinc-500 text-[9px]">{total > 0 ? total : ''}</span>
+                <div
+                  className="w-full rounded-t transition-all"
+                  style={{ height: `${Math.max(4, Math.round((total / maxDay) * 80))}px`, backgroundColor: total > 0 ? '#C41515' : 'rgba(255,255,255,0.06)' }}
+                />
+                <span className="text-zinc-600 text-[9px] text-center leading-tight">{day}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Top pages */}
       <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6">
         <h3 className="text-white font-black text-sm uppercase tracking-widest mb-5">Páginas más visitadas — últimos 30 días</h3>
         {loading ? (
           <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-9 bg-zinc-700 rounded-xl animate-pulse" />)}</div>
         ) : pages.length === 0 ? (
-          <p className="text-zinc-600 text-sm text-center py-8">Sin datos. Visitá el sitio para generar métricas.</p>
+          <p className="text-zinc-600 text-sm text-center py-8">Sin datos aún.</p>
         ) : (
           <div className="space-y-3">
             {pages.map((p, i) => {
-              const max = pages[0]?.total || 1
-              const pct = Math.round((p.total / max) * 100)
+              const pct = Math.round((p.total / (pages[0]?.total || 1)) * 100)
               return (
-                <div key={p.key} className="flex items-center gap-4">
+                <div key={p.path} className="flex items-center gap-4">
                   <span className="text-zinc-600 text-xs w-4 text-right">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-white text-sm font-mono truncate">{p.key || '/'}</span>
-                      <span className="text-zinc-400 text-xs font-bold ml-4 flex-shrink-0">{fmtN(p.total)}</span>
+                      <span className="text-white text-sm font-mono truncate">{p.path}</span>
+                      <span className="text-zinc-400 text-xs font-bold ml-4 flex-shrink-0">{p.total}</span>
                     </div>
                     <div className="h-1 bg-zinc-700 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-yellow-400" style={{ width: `${pct}%` }} />
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#C41515' }} />
                     </div>
                   </div>
                 </div>
@@ -916,7 +955,7 @@ function VisitasTab() {
           </div>
         )}
       </div>
-      <p className="text-zinc-700 text-xs text-center">Datos de Vercel Analytics · últimos 30 días</p>
+      <p className="text-zinc-700 text-xs text-center">Tracking propio · últimos 30 días</p>
     </div>
   )
 }
