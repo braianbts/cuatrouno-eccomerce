@@ -11,6 +11,8 @@ type Props = {
   onSave: () => void
 }
 
+type Variant = { name: string; image: string; stock: number }
+
 const categories = [
   'proteinas', 'creatina', 'pre-workout', 'vitaminas', 'quemadores', 'aminoacidos', 'otros'
 ]
@@ -24,7 +26,19 @@ function slugify(text: string) {
     .replace(/(^-|-$)/g, '')
 }
 
+function parseVariants(flavor: string | null): Variant[] | null {
+  if (!flavor) return null
+  try {
+    const parsed = JSON.parse(flavor)
+    if (Array.isArray(parsed) && parsed[0]?.name) return parsed
+  } catch {}
+  return null
+}
+
 export default function ProductForm({ product, onClose, onSave }: Props) {
+  const initialVariants = parseVariants(product?.flavor ?? null)
+  const [variants, setVariants] = useState<Variant[] | null>(initialVariants)
+
   const [form, setForm] = useState({
     name: product?.name || '',
     slug: product?.slug || '',
@@ -34,7 +48,7 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
     category: product?.category || 'proteinas',
     stock: product?.stock?.toString() || '0',
     brand: product?.brand || '',
-    flavor: product?.flavor || '',
+    flavor: initialVariants ? '' : (product?.flavor || ''),
     weight: product?.weight || '',
     featured: product?.featured || false,
     active: product?.active ?? true,
@@ -53,6 +67,14 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
       [name]: type === 'checkbox' ? checked : value,
       ...(name === 'name' && !product ? { slug: slugify(value) } : {}),
     }))
+  }
+
+  const handleVariantStock = (index: number, newStock: number) => {
+    setVariants((prev) => {
+      if (!prev) return prev
+      const updated = prev.map((v, i) => i === index ? { ...v, stock: newStock } : v)
+      return updated
+    })
   }
 
   const uploadImages = async (files: FileList) => {
@@ -83,6 +105,17 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
     }
     setSaving(true)
 
+    let flavorValue: string | null
+    let stockValue: number
+
+    if (variants) {
+      flavorValue = JSON.stringify(variants)
+      stockValue = variants.reduce((sum, v) => sum + v.stock, 0)
+    } else {
+      flavorValue = form.flavor || null
+      stockValue = parseInt(form.stock) || 0
+    }
+
     const payload = {
       name: form.name,
       slug: form.slug || slugify(form.name),
@@ -90,9 +123,9 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
       price: parseFloat(form.price),
       compare_price: form.compare_price ? parseFloat(form.compare_price) : null,
       category: form.category,
-      stock: parseInt(form.stock) || 0,
+      stock: stockValue,
       brand: form.brand,
-      flavor: form.flavor || null,
+      flavor: flavorValue,
       weight: form.weight || null,
       featured: form.featured,
       active: form.active,
@@ -231,16 +264,40 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
                 placeholder="18000"
               />
             </div>
-            <div>
-              <label className="text-zinc-400 text-sm mb-1 block">Stock</label>
-              <input
-                name="stock"
-                type="number"
-                value={form.stock}
-                onChange={handleChange}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
-              />
-            </div>
+            {/* Stock: show per-variant editors if product has variants, else single field */}
+            {variants ? (
+              <div className="col-span-3">
+                <label className="text-zinc-400 text-sm mb-2 block">Stock por sabor</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {variants.map((v, i) => (
+                    <div key={v.name} className="flex items-center gap-3 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5">
+                      <span className="text-white text-sm font-bold flex-1">{v.name}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={v.stock}
+                        onChange={(e) => handleVariantStock(i, parseInt(e.target.value) || 0)}
+                        className="w-16 bg-zinc-700 border border-zinc-600 rounded-lg px-2 py-1 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-zinc-500 text-xs mt-2">
+                  Stock total: {variants.reduce((s, v) => s + v.stock, 0)}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label className="text-zinc-400 text-sm mb-1 block">Stock</label>
+                <input
+                  name="stock"
+                  type="number"
+                  value={form.stock}
+                  onChange={handleChange}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
+                />
+              </div>
+            )}
           </div>
 
           {/* Category / flavor / weight */}
@@ -258,16 +315,18 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="text-zinc-400 text-sm mb-1 block">Sabor</label>
-              <input
-                name="flavor"
-                value={form.flavor}
-                onChange={handleChange}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
-                placeholder="Chocolate"
-              />
-            </div>
+            {!variants && (
+              <div>
+                <label className="text-zinc-400 text-sm mb-1 block">Sabor</label>
+                <input
+                  name="flavor"
+                  value={form.flavor}
+                  onChange={handleChange}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
+                  placeholder="Chocolate"
+                />
+              </div>
+            )}
             <div>
               <label className="text-zinc-400 text-sm mb-1 block">Peso</label>
               <input
