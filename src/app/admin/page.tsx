@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, Product } from '@/lib/supabase'
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, LogOut, Package, BarChart2, ShoppingBag, TrendingDown, RefreshCw, DollarSign, X, Check, ChevronDown, Activity } from 'lucide-react'
-import Link from 'next/link'
 import ProductForm from '@/components/admin/ProductForm'
 import Image from 'next/image'
 
@@ -70,6 +69,7 @@ const TABS = [
   { id: 'movimientos', label: 'Movimientos', icon: RefreshCw },
   { id: 'caja', label: 'Caja', icon: DollarSign },
   { id: 'productos', label: 'Productos', icon: Package },
+  { id: 'visitas', label: 'Visitas', icon: Activity },
 ]
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
@@ -816,6 +816,111 @@ function ProductosTab() {
   )
 }
 
+// ─── Visitas Tab ──────────────────────────────────────────────────────────────
+
+interface AnalyticsStats {
+  totalVisitors?: { value: number }
+  pageviews?: { value: number }
+  avgDuration?: { value: number }
+  bounceRate?: { value: number }
+}
+interface PageRow { key: string; total: number }
+
+function VisitasTab() {
+  const [stats, setStats] = useState<AnalyticsStats | null>(null)
+  const [pages, setPages] = useState<PageRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [refreshed, setRefreshed] = useState<Date | null>(null)
+
+  const load = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/analytics')
+      const json = await res.json()
+      if (json.error) throw new Error(json.error)
+      setStats(json.stats)
+      setPages(json.pages?.data || [])
+      setRefreshed(new Date())
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error al cargar datos')
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const fmtN = (n?: number) => n != null ? n.toLocaleString('es-AR') : '—'
+  const fmtSecs = (ms?: number) => {
+    if (ms == null) return '—'
+    const s = Math.round(ms / 1000)
+    return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-white font-black text-lg uppercase tracking-tight">Visitas del sitio</h2>
+        <div className="flex items-center gap-3">
+          {refreshed && <span className="text-zinc-600 text-xs">{refreshed.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</span>}
+          <button onClick={load} disabled={loading} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl transition-colors">
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+            Actualizar
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="bg-red-950 border border-red-800 text-red-400 text-sm px-4 py-3 rounded-xl">{error}</div>}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Visitantes únicos', value: fmtN(stats?.totalVisitors?.value), color: 'text-yellow-400' },
+          { label: 'Vistas de página', value: fmtN(stats?.pageviews?.value), color: 'text-blue-400' },
+          { label: 'Tiempo promedio', value: fmtSecs(stats?.avgDuration?.value), color: 'text-green-400' },
+          { label: 'Tasa de rebote', value: stats?.bounceRate?.value != null ? `${Math.round(stats.bounceRate.value)}%` : '—', color: 'text-orange-400' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5">
+            <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-2">{label}</p>
+            <p className={`font-black text-2xl ${loading ? 'animate-pulse text-zinc-700' : color}`}>{loading ? '···' : value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6">
+        <h3 className="text-white font-black text-sm uppercase tracking-widest mb-5">Páginas más visitadas — últimos 30 días</h3>
+        {loading ? (
+          <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-9 bg-zinc-700 rounded-xl animate-pulse" />)}</div>
+        ) : pages.length === 0 ? (
+          <p className="text-zinc-600 text-sm text-center py-8">Sin datos. Visitá el sitio para generar métricas.</p>
+        ) : (
+          <div className="space-y-3">
+            {pages.map((p, i) => {
+              const max = pages[0]?.total || 1
+              const pct = Math.round((p.total / max) * 100)
+              return (
+                <div key={p.key} className="flex items-center gap-4">
+                  <span className="text-zinc-600 text-xs w-4 text-right">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-white text-sm font-mono truncate">{p.key || '/'}</span>
+                      <span className="text-zinc-400 text-xs font-bold ml-4 flex-shrink-0">{fmtN(p.total)}</span>
+                    </div>
+                    <div className="h-1 bg-zinc-700 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-yellow-400" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+      <p className="text-zinc-700 text-xs text-center">Datos de Vercel Analytics · últimos 30 días</p>
+    </div>
+  )
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -877,13 +982,6 @@ export default function AdminPage() {
               </button>
             )
           })}
-          <Link
-            href="/admin/analytics"
-            className="flex items-center gap-2 px-4 py-3 text-xs font-black uppercase tracking-widest border-b-2 border-transparent text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
-          >
-            <Activity size={14} />
-            Visitas
-          </Link>
         </div>
       </div>
 
@@ -895,6 +993,7 @@ export default function AdminPage() {
         {activeTab === 'movimientos' && <MovimientosTab />}
         {activeTab === 'caja' && <CajaTab />}
         {activeTab === 'productos' && <ProductosTab />}
+        {activeTab === 'visitas' && <VisitasTab />}
       </div>
     </div>
   )
