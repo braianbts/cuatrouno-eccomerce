@@ -27,5 +27,9 @@ export async function GET() {
   const stats = await statsRes.json()
   const pages = await pagesRes.json()
 
+  if (!statsRes.ok) {
+    return NextResponse.json({ error: `Vercel API error ${statsRes.status}: ${JSON.stringify(stats)}` }, { status: 500 })
+  }
+
   return NextResponse.json({ stats, pages })
 }
