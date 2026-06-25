@@ -51,7 +51,7 @@ export default function ProductCard({ product }: Props) {
         </Link>
 
         <div className="mt-2.5">
-          <div className="flex items-baseline gap-1.5 mb-2">
+          <div className="flex items-baseline gap-1.5 mb-1.5">
             <span className="font-black text-base" style={{ color: '#C41515' }}>
               ${product.price.toLocaleString('es-AR')}
             </span>
@@ -61,6 +61,9 @@ export default function ProductCard({ product }: Props) {
               </span>
             )}
           </div>
+          <p className="text-[8px] font-bold uppercase tracking-wide mb-2" style={{ color: '#16a34a' }}>
+            💵 5% off en efectivo · ${Math.round(product.price * 0.95).toLocaleString('es-AR')}
+          </p>
 
           <button
             onClick={() => product.stock > 0 && add(product)}

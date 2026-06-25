@@ -151,7 +151,7 @@ export default function ProductoPage() {
               )}
             </h1>
 
-            <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-black/5">
+            <div className="flex items-baseline gap-3 mb-3">
               <span className="font-black text-5xl" style={{ color: '#C41515' }}>
                 ${product.price.toLocaleString('es-AR')}
               </span>
@@ -160,6 +160,13 @@ export default function ProductoPage() {
                   ${product.compare_price.toLocaleString('es-AR')}
                 </span>
               )}
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-8 pb-8 border-b border-black/5" style={{ backgroundColor: 'rgba(22,163,74,0.07)' }}>
+              <span className="text-sm">💵</span>
+              <span className="text-xs font-bold" style={{ color: '#16a34a' }}>
+                5% OFF pagando en efectivo —{' '}
+                <span className="font-black">${Math.round(product.price * 0.95).toLocaleString('es-AR')}</span>
+              </span>
             </div>
 
             {/* Flavor / variant selector */}
