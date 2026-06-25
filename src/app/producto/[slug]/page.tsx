@@ -176,6 +176,7 @@ export default function ProductoPage() {
                 </span>
                 <div className="h-px flex-1 bg-black/5" />
               </div>
+              <p className="text-center text-[9px] text-black/30">* No disponible con American Express</p>
             </div>
 
             {/* Flavor / variant selector */}

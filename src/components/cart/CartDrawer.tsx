@@ -97,10 +97,11 @@ export default function CartDrawer({ open, onClose }: Props) {
               <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#16a34a' }}>💵 Efectivo (5% off)</span>
               <span className="font-black text-sm" style={{ color: '#16a34a' }}>${Math.round(total() * 0.95).toLocaleString('es-AR')}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#2563eb' }}>💳 3 cuotas s/interés</span>
-              <span className="font-black text-sm" style={{ color: '#2563eb' }}>3 × ${Math.ceil(total() / 0.9077 / 3).toLocaleString('es-AR')}</span>
+            <div className="flex justify-between items-center" style={{ color: '#2563eb' }}>
+              <span className="text-[10px] font-bold uppercase tracking-widest">💳 3 cuotas s/interés</span>
+              <span className="font-black text-sm">3 × ${Math.ceil(total() / 0.9077 / 3).toLocaleString('es-AR')}</span>
             </div>
+            <p className="text-[9px] pb-2 border-b border-white/5" style={{ color: 'rgba(255,255,255,0.2)' }}>* No disponible con American Express</p>
             <button
               onClick={handleCheckout}
               className="w-full bg-[#25D366] hover:bg-[#20c05a] text-white font-black py-4 flex items-center justify-center gap-2 transition-colors text-xs uppercase tracking-widest"
