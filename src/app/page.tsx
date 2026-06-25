@@ -77,6 +77,18 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* Cash discount bar */}
+      <div style={{ background: 'linear-gradient(90deg, #14532d 0%, #16a34a 50%, #14532d 100%)' }}>
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-3">
+          <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">💵</span>
+          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-widest">
+            5% OFF abonando en efectivo
+          </span>
+          <span className="text-white/40 text-[10px]">·</span>
+          <span className="text-white/70 text-[10px] sm:text-[11px] font-medium normal-case tracking-normal">Consultá en cada producto</span>
+        </div>
+      </div>
+
       {/* Categories */}
       <section className="bg-[#0f0f0f]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
