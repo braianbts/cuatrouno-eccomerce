@@ -17,6 +17,8 @@ export default function CartDrawer({ open, onClose }: Props) {
     if (!payMethod) return
     const msg = buildWhatsAppMessage(payMethod)
     window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank')
+    clear()
+    onClose()
   }
 
   const t = total()
