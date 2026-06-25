@@ -92,15 +92,17 @@ function KpiCard({ label, value, sub, color = 'yellow' }: { label: string; value
 
 // ─── Modal wrapper ────────────────────────────────────────────────────────────
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
-      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6" style={{ background: 'rgba(0,0,0,0.85)' }}>
+      <div className={`bg-zinc-900 border border-zinc-700 rounded-2xl w-full flex flex-col ${wide ? 'max-w-5xl' : 'max-w-md'}`} style={{ maxHeight: '90vh' }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 flex-shrink-0">
           <h3 className="text-white font-black text-lg">{title}</h3>
           <button onClick={onClose} className="text-zinc-500 hover:text-white"><X size={18} /></button>
         </div>
-        {children}
+        <div className="overflow-y-auto flex-1 px-6 py-5">
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -167,12 +169,15 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
     if (valid.length === 0) return
     setSaving(true)
 
+    const grupoId = crypto.randomUUID()
+    const notasConGrupo = `__g:${grupoId}__|${notas}`
+
     for (const it of valid) {
       await supabase.from('ventas').insert({
         fecha, producto: it.producto, categoria: it.categoria,
         cantidad: it.cantidad, precio_unitario: it.precio_unitario,
         costo: it.costo, total: it.precio_unitario * it.cantidad,
-        metodo_pago, notas,
+        metodo_pago, notas: notasConGrupo,
       })
       if (it.selectedProduct) {
         const newStock = Math.max(0, (it.selectedProduct.stock || 0) - it.cantidad)
@@ -184,7 +189,7 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
       await supabase.from('ventas').insert({
         fecha, producto: 'Descuento', categoria: 'otros',
         cantidad: 1, precio_unitario: -descuento, costo: 0,
-        total: -descuento, metodo_pago, notas: '',
+        total: -descuento, metodo_pago, notas: notasConGrupo,
       })
     }
 
@@ -193,7 +198,7 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
   }
 
   return (
-    <Modal title="Nueva Venta" onClose={onClose}>
+    <Modal title="Nueva Venta" onClose={onClose} wide>
       {/* Header fijo */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <Field label="Fecha"><input type="date" className={inputCls} value={fecha} onChange={e => setFecha(e.target.value)} /></Field>
@@ -543,11 +548,37 @@ function DashboardTab() {
 
 // ─── Ventas Tab ───────────────────────────────────────────────────────────────
 
+const parseGrupoId = (notas: string | null | undefined) => { const m = (notas || '').match(/^__g:([^_]+)__\|/); return m ? m[1] : null }
+const parseNotas = (notas: string | null | undefined) => (notas || '').replace(/^__g:[^_]+__\|/, '')
+type VentaGrupo = { grupoId: string | null; key: string; items: Venta[]; descuento: number; total: number; fecha: string; metodo_pago: string; notas: string }
+
+function buildGrupos(ventas: Venta[]): VentaGrupo[] {
+  const map = new Map<string, VentaGrupo>()
+  const order: VentaGrupo[] = []
+  for (const v of ventas) {
+    const gid = parseGrupoId(v.notas)
+    if (gid) {
+      if (!map.has(gid)) {
+        const g: VentaGrupo = { grupoId: gid, key: gid, items: [], descuento: 0, total: 0, fecha: v.fecha, metodo_pago: v.metodo_pago, notas: parseNotas(v.notas) }
+        map.set(gid, g); order.push(g)
+      }
+      const g = map.get(gid)!
+      if (v.producto === 'Descuento') g.descuento += Math.abs(v.total)
+      else g.items.push(v)
+      g.total += v.total
+    } else {
+      order.push({ grupoId: null, key: v.id, items: [v], descuento: 0, total: v.total, fecha: v.fecha, metodo_pago: v.metodo_pago, notas: parseNotas(v.notas) })
+    }
+  }
+  return order
+}
+
 function VentasTab() {
   const [ventas, setVentas] = useState<Venta[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   const fetch_ = useCallback(async () => {
     setLoading(true)
@@ -559,47 +590,80 @@ function VentasTab() {
   useEffect(() => { fetch_() }, [fetch_])
 
   const filtered = search ? ventas.filter(v => v.producto.toLowerCase().includes(search.toLowerCase()) || v.metodo_pago.includes(search.toLowerCase())) : ventas
-  const total = filtered.reduce((s, v) => s + v.total, 0)
+  const totalFiltrado = filtered.reduce((s, v) => s + v.total, 0)
+  const grupos = buildGrupos(filtered)
 
-  const del = async (id: string) => {
-    if (!confirm('¿Eliminar esta venta?')) return
-    await supabase.from('ventas').delete().eq('id', id)
-    setVentas(prev => prev.filter(v => v.id !== id))
+  const delGrupo = async (g: VentaGrupo) => {
+    if (!confirm(`¿Eliminar esta venta${g.items.length > 1 ? ` (${g.items.length} productos)` : ''}?`)) return
+    const allRows = g.grupoId ? ventas.filter(v => parseGrupoId(v.notas) === g.grupoId) : g.items
+    const ids = allRows.map(v => v.id)
+    for (const id of ids) await supabase.from('ventas').delete().eq('id', id)
+    setVentas(prev => prev.filter(v => !ids.includes(v.id)))
   }
 
+  const toggle = (key: string) => setExpanded(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n })
   const METODO_COLORS: Record<string, string> = { efectivo: 'text-green-400', mercadopago: 'text-blue-400', tiendanube: 'text-purple-400', transferencia: 'text-yellow-400' }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white font-black">{fmtNum(filtered.length)} ventas</p>
-          <p className="text-yellow-400 text-sm font-bold">{fmt(total)}</p>
+          <p className="text-white font-black">{fmtNum(grupos.length)} ventas</p>
+          <p className="text-yellow-400 text-sm font-bold">{fmt(totalFiltrado)}</p>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-black px-4 py-2 rounded-xl text-sm">
           <Plus size={16} /> Nueva Venta
         </button>
       </div>
       <input type="text" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm mb-4 focus:outline-none focus:border-yellow-400" />
-
       {showForm && <VentaForm onClose={() => setShowForm(false)} onSave={() => { setShowForm(false); fetch_() }} />}
 
-      {loading ? <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="bg-zinc-900 rounded-xl h-14 animate-pulse" />)}</div> : (
+      {loading ? (
+        <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="bg-zinc-900 rounded-xl h-14 animate-pulse" />)}</div>
+      ) : (
         <div className="space-y-2">
-          {filtered.map(v => (
-            <div key={v.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-semibold truncate">{v.producto}</p>
-                <p className="text-zinc-500 text-xs">{v.fecha} · {v.cantidad} u · <span className={METODO_COLORS[v.metodo_pago] || 'text-zinc-400'}>{v.metodo_pago}</span></p>
+          {grupos.map(g => {
+            const isMulti = g.items.length > 1 || g.descuento > 0
+            const isOpen = expanded.has(g.key)
+            const label = isMulti ? `${g.items.length} producto${g.items.length !== 1 ? 's' : ''}${g.descuento > 0 ? ` · desc. ${fmt(g.descuento)}` : ''}` : g.items[0]?.producto || ''
+            return (
+              <div key={g.key} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+                <div className={`p-3 flex items-center gap-3 ${isMulti ? 'cursor-pointer hover:bg-zinc-800/50' : ''}`} onClick={() => isMulti && toggle(g.key)}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-semibold truncate">{label}</p>
+                    <p className="text-zinc-500 text-xs">{g.fecha} · <span className={METODO_COLORS[g.metodo_pago] || 'text-zinc-400'}>{g.metodo_pago}</span>{g.notas && <span className="text-zinc-600"> · {g.notas}</span>}</p>
+                  </div>
+                  <p className="text-yellow-400 font-black text-sm flex-shrink-0">{fmt(g.total)}</p>
+                  {isMulti && <span className="text-zinc-500 text-[10px]">{isOpen ? '▲' : '▼'}</span>}
+                  <button onClick={e => { e.stopPropagation(); delGrupo(g) }} className="text-zinc-600 hover:text-red-400 p-1 flex-shrink-0"><Trash2 size={14} /></button>
+                </div>
+                {isMulti && isOpen && (
+                  <div className="border-t border-zinc-800 divide-y divide-zinc-800">
+                    {g.items.map(v => (
+                      <div key={v.id} className="px-4 py-2 flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-zinc-300 text-xs font-semibold truncate">{v.producto}</p>
+                          <p className="text-zinc-600 text-xs">{v.cantidad} u · {fmt(v.precio_unitario)} c/u</p>
+                        </div>
+                        <p className="text-yellow-400 text-xs font-black">{fmt(v.total)}</p>
+                      </div>
+                    ))}
+                    {g.descuento > 0 && (
+                      <div className="px-4 py-2 flex justify-between">
+                        <p className="text-zinc-500 text-xs">Descuento</p>
+                        <p className="text-red-400 text-xs font-black">−{fmt(g.descuento)}</p>
+                      </div>
+                    )}
+                    <div className="px-4 py-2 flex justify-between bg-zinc-800/60">
+                      <p className="text-zinc-400 text-xs font-black uppercase tracking-widest">Total</p>
+                      <p className="text-yellow-400 text-sm font-black">{fmt(g.total)}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="text-right">
-                <p className="text-yellow-400 font-black text-sm">{fmt(v.total)}</p>
-                {v.ganancia != null && <p className={`text-xs ${v.ganancia >= 0 ? 'text-green-400' : 'text-red-400'}`}>gan. {fmt(v.ganancia)}</p>}
-              </div>
-              <button onClick={() => del(v.id)} className="text-zinc-600 hover:text-red-400 p-1"><Trash2 size={14} /></button>
-            </div>
-          ))}
-          {filtered.length === 0 && <p className="text-zinc-600 text-center py-12 text-sm">Sin ventas registradas</p>}
+            )
+          })}
+          {grupos.length === 0 && <p className="text-zinc-600 text-center py-12 text-sm">Sin ventas registradas</p>}
         </div>
       )}
     </div>
