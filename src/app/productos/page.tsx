@@ -36,10 +36,11 @@ function ProductosContent() {
     setLoading(false)
   }
 
+  const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   const filtered = search.trim()
     ? products.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.brand?.toLowerCase().includes(search.toLowerCase())
+        norm(p.name).includes(norm(search)) ||
+        norm(p.brand || '').includes(norm(search))
       )
     : products
 

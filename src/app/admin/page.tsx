@@ -61,6 +61,7 @@ interface CajaEntry {
 const fmt = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 const fmtNum = (n: number) => new Intl.NumberFormat('es-AR').format(n)
 const localDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart2 },
@@ -153,11 +154,11 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
   }
 
   const suggestions = (i: number) => {
-    const q = items[i].query.toLowerCase()
+    const q = norm(items[i].query)
     if (q.length < 2) return []
-    const matches = allProducts.filter(p => p.name.toLowerCase().includes(q))
-    const starts = matches.filter(p => p.name.toLowerCase().startsWith(q))
-    const rest = matches.filter(p => !p.name.toLowerCase().startsWith(q))
+    const matches = allProducts.filter(p => norm(p.name).includes(q))
+    const starts = matches.filter(p => norm(p.name).startsWith(q))
+    const rest = matches.filter(p => !norm(p.name).startsWith(q))
     return [...starts, ...rest].slice(0, 12)
   }
 
@@ -589,7 +590,7 @@ function VentasTab() {
 
   useEffect(() => { fetch_() }, [fetch_])
 
-  const filtered = search ? ventas.filter(v => v.producto.toLowerCase().includes(search.toLowerCase()) || v.metodo_pago.includes(search.toLowerCase())) : ventas
+  const filtered = search ? ventas.filter(v => norm(v.producto).includes(norm(search)) || v.metodo_pago.includes(norm(search))) : ventas
   const totalFiltrado = filtered.reduce((s, v) => s + v.total, 0)
   const grupos = buildGrupos(filtered)
 
@@ -897,7 +898,7 @@ function ProductosTab() {
     setProducts(prev => prev.filter(p => p.id !== id))
   }
 
-  const filtered = products.filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase()))
+  const filtered = products.filter(p => !search || norm(p.name).includes(norm(search)) || norm(p.category || '').includes(norm(search)))
 
   return (
     <div>
