@@ -152,7 +152,11 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
 
   const suggestions = (i: number) => {
     const q = items[i].query.toLowerCase()
-    return q.length > 1 ? allProducts.filter(p => p.name.toLowerCase().includes(q)).slice(0, 6) : []
+    if (q.length < 2) return []
+    const matches = allProducts.filter(p => p.name.toLowerCase().includes(q))
+    const starts = matches.filter(p => p.name.toLowerCase().startsWith(q))
+    const rest = matches.filter(p => !p.name.toLowerCase().startsWith(q))
+    return [...starts, ...rest].slice(0, 12)
   }
 
   const subtotal = items.reduce((s, it) => s + it.precio_unitario * it.cantidad, 0)
