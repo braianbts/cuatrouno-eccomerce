@@ -66,10 +66,11 @@ export const useCart = create<CartStore>()(
         return get().items.reduce((sum, i) => sum + i.quantity, 0)
       },
 
-      buildWhatsAppMessage: () => {
+      buildWhatsAppMessage: (paymentMethod?: string) => {
         const items = get().items
         if (items.length === 0) return ''
 
+        const base = get().total()
         const storeName = process.env.NEXT_PUBLIC_STORE_NAME || 'Cuatrouno Suplementos'
         let msg = `Hola! Quiero hacer un pedido en *${storeName}*:\n\n`
 
@@ -79,8 +80,22 @@ export const useCart = create<CartStore>()(
           msg += ` x${item.quantity} = $${(item.product.price * item.quantity).toLocaleString('es-AR')}\n`
         })
 
-        msg += `\n*Total: $${get().total().toLocaleString('es-AR')}*`
-        msg += `\n\n¿Cómo puedo coordinar el pago y envío?`
+        msg += `\n*Total lista: $${base.toLocaleString('es-AR')}*`
+
+        if (paymentMethod === 'efectivo') {
+          const final = Math.round(base * 0.95)
+          msg += `\n💵 *Método de pago: Efectivo*`
+          msg += `\n✅ *Total con 5% off: $${final.toLocaleString('es-AR')}*`
+        } else if (paymentMethod === 'transferencia') {
+          msg += `\n🏦 *Método de pago: Transferencia bancaria*`
+          msg += `\n✅ *Total: $${base.toLocaleString('es-AR')}*`
+        } else if (paymentMethod === 'cuotas') {
+          const cuota = Math.ceil(base / 0.9077 / 3)
+          msg += `\n💳 *Método de pago: 3 cuotas sin interés (Mercado Pago)*`
+          msg += `\n✅ *3 cuotas de $${cuota.toLocaleString('es-AR')}* (no disponible con Amex)`
+        }
+
+        msg += `\n\n¿Pueden coordinar el envío?`
 
         return encodeURIComponent(msg)
       },

@@ -3,17 +3,25 @@
 import { X, Trash2, MessageCircle, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/store/cart'
 import Image from 'next/image'
+import { useState } from 'react'
 
 type Props = { open: boolean; onClose: () => void }
+type PayMethod = 'efectivo' | 'transferencia' | 'cuotas' | ''
 
 export default function CartDrawer({ open, onClose }: Props) {
   const { items, remove, update, total, buildWhatsAppMessage, clear } = useCart()
   const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
+  const [payMethod, setPayMethod] = useState<PayMethod>('')
 
   const handleCheckout = () => {
-    const msg = buildWhatsAppMessage()
+    if (!payMethod) return
+    const msg = buildWhatsAppMessage(payMethod)
     window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank')
   }
+
+  const t = total()
+  const precioEfectivo = Math.round(t * 0.95)
+  const precioCuota = Math.ceil(t / 0.9077 / 3)
 
   return (
     <>
@@ -89,25 +97,42 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         {items.length > 0 && (
           <div className="px-5 py-5 border-t border-white/5 space-y-3">
-            <div className="flex justify-between items-baseline mb-1">
+            <div className="flex justify-between items-baseline mb-3">
               <span className="text-white/40 text-xs uppercase tracking-widest">Total</span>
-              <span className="font-black text-2xl text-white">${total().toLocaleString('es-AR')}</span>
+              <span className="font-black text-2xl text-white">${t.toLocaleString('es-AR')}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#16a34a' }}>💵 Efectivo (5% off)</span>
-              <span className="font-black text-sm" style={{ color: '#16a34a' }}>${Math.round(total() * 0.95).toLocaleString('es-AR')}</span>
+
+            {/* Payment method selector */}
+            <p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">Método de pago</p>
+            <div className="space-y-2 mb-4">
+              {[
+                { id: 'efectivo' as PayMethod, label: '💵 Efectivo', sub: `$${precioEfectivo.toLocaleString('es-AR')} — 5% off`, color: '#16a34a' },
+                { id: 'transferencia' as PayMethod, label: '🏦 Transferencia', sub: `$${t.toLocaleString('es-AR')}`, color: '#a16207' },
+                { id: 'cuotas' as PayMethod, label: '💳 3 cuotas s/interés', sub: `3 × $${precioCuota.toLocaleString('es-AR')} · no Amex`, color: '#2563eb' },
+              ].map(({ id, label, sub, color }) => (
+                <button
+                  key={id}
+                  onClick={() => setPayMethod(id)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all text-left"
+                  style={{
+                    borderColor: payMethod === id ? color : 'rgba(255,255,255,0.08)',
+                    backgroundColor: payMethod === id ? `${color}18` : 'transparent',
+                  }}
+                >
+                  <span className="text-white text-xs font-bold">{label}</span>
+                  <span className="text-[10px] font-bold" style={{ color }}>{sub}</span>
+                </button>
+              ))}
             </div>
-            <div className="flex justify-between items-center" style={{ color: '#2563eb' }}>
-              <span className="text-[10px] font-bold uppercase tracking-widest">💳 3 cuotas s/interés</span>
-              <span className="font-black text-sm">3 × ${Math.ceil(total() / 0.9077 / 3).toLocaleString('es-AR')}</span>
-            </div>
-            <p className="text-[9px] pb-2 border-b border-white/5" style={{ color: 'rgba(255,255,255,0.2)' }}>* No disponible con American Express</p>
+
             <button
               onClick={handleCheckout}
-              className="w-full bg-[#25D366] hover:bg-[#20c05a] text-white font-black py-4 flex items-center justify-center gap-2 transition-colors text-xs uppercase tracking-widest"
+              disabled={!payMethod}
+              className="w-full text-white font-black py-4 flex items-center justify-center gap-2 transition-all text-xs uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ backgroundColor: payMethod ? '#25D366' : '#333' }}
             >
               <MessageCircle size={18} />
-              Pedir por WhatsApp
+              {payMethod ? 'Pedir por WhatsApp' : 'Elegí un método de pago'}
             </button>
             <button
               onClick={clear}
