@@ -128,7 +128,7 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   useEffect(() => {
-    supabase.from('products').select('id,name,category,price,stock').eq('active', true).order('name').then(({ data }) => setAllProducts(data || []))
+    supabase.from('products').select('*').eq('active', true).order('name').then(({ data }) => setAllProducts(data || []))
   }, [])
 
   const handleProductInput = (val: string) => {

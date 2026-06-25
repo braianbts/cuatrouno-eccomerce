@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase, Product } from '@/lib/supabase'
 import ProductCard from '@/components/product/ProductCard'
@@ -18,7 +18,7 @@ const categories = [
   { name: 'Otros', slug: 'otros' },
 ]
 
-export default function ProductosPage() {
+function ProductosContent() {
   const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -109,5 +109,13 @@ export default function ProductosPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ProductosPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <ProductosContent />
+    </Suspense>
   )
 }
