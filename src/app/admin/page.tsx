@@ -95,7 +95,7 @@ function KpiCard({ label, value, sub, color = 'yellow' }: { label: string; value
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.8)' }}>
-      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md p-6">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-2xl p-6">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-white font-black text-lg">{title}</h3>
           <button onClick={onClose} className="text-zinc-500 hover:text-white"><X size={18} /></button>
@@ -207,37 +207,41 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
         </Field>
       </div>
 
-      {/* Tabla productos con scroll interno */}
-      <div className="border border-zinc-700 rounded-xl overflow-hidden mb-3">
-        <div className="grid grid-cols-[1fr_52px_96px_80px_28px] gap-0 bg-zinc-900 px-2 py-1.5 border-b border-zinc-700">
-          {['Producto','Cant.','Precio','Costo',''].map(h => (
-            <span key={h} className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">{h}</span>
+      {/* Tabla productos */}
+      <div className="border border-zinc-700 rounded-xl mb-3">
+        {/* Header */}
+        <div className="grid grid-cols-[1fr_64px_110px_100px_32px] gap-2 bg-zinc-800 px-3 py-2 rounded-t-xl border-b border-zinc-700">
+          {['Producto','Cant.','Precio vta.','Costo',''].map(h => (
+            <span key={h} className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">{h}</span>
           ))}
         </div>
-        <div className="max-h-[240px] overflow-y-auto divide-y divide-zinc-800">
+
+        {/* Rows — overflow visible para que el dropdown escape */}
+        <div className="divide-y divide-zinc-800">
           {items.map((it, i) => (
-            <div key={i} className="px-2 py-2 space-y-1">
-              <div className="grid grid-cols-[1fr_52px_96px_80px_28px] gap-1 items-center">
+            <div key={i} className="px-3 py-2.5 space-y-1.5">
+              <div className="grid grid-cols-[1fr_64px_110px_100px_32px] gap-2 items-center">
+                {/* Buscador */}
                 <div className="relative">
                   <input
                     type="text"
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white text-xs placeholder-zinc-500 focus:outline-none focus:border-yellow-400"
-                    placeholder="Buscar..."
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-yellow-400"
+                    placeholder="Buscar producto..."
                     value={it.query}
                     onChange={e => handleQuery(i, e.target.value)}
                     onFocus={() => it.query.length > 1 && setActiveIdx(i)}
                     onBlur={() => setTimeout(() => setActiveIdx(null), 150)}
                   />
                   {activeIdx === i && suggestions(i).length > 0 && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-lg overflow-hidden shadow-xl max-h-44 overflow-y-auto">
+                    <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-xl shadow-2xl max-h-52 overflow-y-auto">
                       {suggestions(i).map(p => (
                         <button key={p.id} type="button" onMouseDown={() => selectProduct(i, p)}
-                          className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-2">
+                          className="w-full text-left px-3 py-2 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-3 border-b border-zinc-700 last:border-0">
                           <div className="min-w-0">
-                            <p className="text-white text-xs font-semibold truncate">{p.name}</p>
-                            <p className="text-zinc-400 text-[10px]">stock: {p.stock}</p>
+                            <p className="text-white text-sm font-semibold truncate">{p.name}</p>
+                            <p className="text-zinc-400 text-xs">{p.category} · stock: {p.stock}</p>
                           </div>
-                          <p className="text-yellow-400 text-xs font-black flex-shrink-0">${p.price.toLocaleString('es-AR')}</p>
+                          <p className="text-yellow-400 text-sm font-black flex-shrink-0">${p.price.toLocaleString('es-AR')}</p>
                         </button>
                       ))}
                     </div>
@@ -245,27 +249,28 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
                 </div>
                 <input type="number" min="1" value={it.cantidad}
                   onChange={e => updateItem(i, { cantidad: Number(e.target.value) })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-1 py-1 text-white text-xs text-center focus:outline-none focus:border-yellow-400" />
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:border-yellow-400" />
                 <input type="number" placeholder="0" value={it.precio_unitario || ''}
                   onChange={e => updateItem(i, { precio_unitario: Number(e.target.value) })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-yellow-400" />
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-400" />
                 <input type="number" placeholder="0" value={it.costo || ''}
                   onChange={e => updateItem(i, { costo: Number(e.target.value) })}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-yellow-400" />
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-400" />
                 <button type="button" onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
-                  className={`text-zinc-600 hover:text-red-400 transition-colors text-base leading-none text-center ${items.length === 1 ? 'invisible' : ''}`}>×</button>
+                  className={`text-zinc-600 hover:text-red-400 transition-colors text-xl leading-none text-center ${items.length === 1 ? 'invisible' : ''}`}>×</button>
               </div>
               {it.selectedProduct && (
-                <p className="text-[10px] text-green-400">
-                  stock: {it.selectedProduct.stock} → {Math.max(0, it.selectedProduct.stock - it.cantidad)} u
-                  {it.precio_unitario > 0 && <span className="text-yellow-400 font-black ml-2">{fmt(it.precio_unitario * it.cantidad)}</span>}
-                </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-green-400">✓ Stock: {it.selectedProduct.stock} → quedará {Math.max(0, it.selectedProduct.stock - it.cantidad)}</span>
+                  {it.precio_unitario > 0 && <span className="text-yellow-400 text-xs font-black ml-auto">{fmt(it.precio_unitario * it.cantidad)}</span>}
+                </div>
               )}
             </div>
           ))}
         </div>
+
         <button type="button" onClick={() => setItems(prev => [...prev, emptyLine()])}
-          className="w-full text-zinc-500 hover:text-yellow-400 hover:bg-zinc-800 text-xs font-black py-2 transition-colors border-t border-zinc-700">
+          className="w-full text-zinc-500 hover:text-yellow-400 hover:bg-zinc-800/50 text-xs font-black py-2.5 transition-colors border-t border-zinc-700 rounded-b-xl">
           + Agregar producto
         </button>
       </div>
