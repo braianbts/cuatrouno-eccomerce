@@ -13,7 +13,7 @@ export default function BrandMarquee() {
       <div className="flex gap-12 animate-ticker whitespace-nowrap">
         {repeated.map((brand, i) => (
           <span key={i} className="shrink-0 flex items-center gap-12">
-            <span className="text-white/20 text-xs font-black uppercase tracking-[0.3em]">{brand}</span>
+            <span className="text-xs font-black uppercase tracking-[0.3em]" style={{ color: '#f5c518' }}>{brand}</span>
             <span style={{ color: '#C41515', fontSize: '8px' }}>✦</span>
           </span>
         ))}
