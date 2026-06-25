@@ -89,9 +89,17 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         {items.length > 0 && (
           <div className="px-5 py-5 border-t border-white/5 space-y-3">
-            <div className="flex justify-between items-baseline">
+            <div className="flex justify-between items-baseline mb-1">
               <span className="text-white/40 text-xs uppercase tracking-widest">Total</span>
               <span className="font-black text-2xl text-white">${total().toLocaleString('es-AR')}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#16a34a' }}>💵 Efectivo (5% off)</span>
+              <span className="font-black text-sm" style={{ color: '#16a34a' }}>${Math.round(total() * 0.95).toLocaleString('es-AR')}</span>
+            </div>
+            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#2563eb' }}>💳 3 cuotas s/interés</span>
+              <span className="font-black text-sm" style={{ color: '#2563eb' }}>3 × ${Math.ceil(total() / 0.9077 / 3).toLocaleString('es-AR')}</span>
             </div>
             <button
               onClick={handleCheckout}
