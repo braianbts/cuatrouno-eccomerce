@@ -5,30 +5,37 @@ const PROJECT_ID = process.env.VERCEL_PROJECT_ID
 
 export async function GET() {
   if (!TOKEN || !PROJECT_ID) {
-    return NextResponse.json({ error: 'Missing config' }, { status: 500 })
+    return NextResponse.json({ error: 'Missing config: TOKEN or PROJECT_ID not set' }, { status: 500 })
   }
 
   const now = Date.now()
-  const from = now - 30 * 24 * 60 * 60 * 1000 // 30 days ago
+  const from = now - 30 * 24 * 60 * 60 * 1000
 
   const headers = {
     Authorization: `Bearer ${TOKEN}`,
-    'Content-Type': 'application/json',
   }
 
-  const base = `https://api.vercel.com/v1/web/insights`
-  const params = `projectId=${PROJECT_ID}&from=${from}&to=${now}&environment=production`
+  const params = new URLSearchParams({
+    projectId: PROJECT_ID,
+    from: String(from),
+    to: String(now),
+    environment: 'production',
+    filter: '[]',
+  })
 
   const [statsRes, pagesRes] = await Promise.all([
-    fetch(`${base}/stats?${params}`, { headers }),
-    fetch(`${base}/path?${params}&limit=10`, { headers }),
+    fetch(`https://api.vercel.com/v1/web/insights/stats?${params}`, { headers }),
+    fetch(`https://api.vercel.com/v1/web/insights/path?${params}&limit=10`, { headers }),
   ])
 
   const stats = await statsRes.json()
   const pages = await pagesRes.json()
 
   if (!statsRes.ok) {
-    return NextResponse.json({ error: `Vercel API error ${statsRes.status}: ${JSON.stringify(stats)}` }, { status: 500 })
+    return NextResponse.json(
+      { error: `API ${statsRes.status}: ${stats?.error?.message || JSON.stringify(stats)}` },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ stats, pages })
