@@ -16,7 +16,7 @@ type CartStore = {
   clear: () => void
   total: () => number
   count: () => number
-  buildWhatsAppMessage: () => string
+  buildWhatsAppMessage: (paymentMethod?: string) => string
 }
 
 export const useCart = create<CartStore>()(
