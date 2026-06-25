@@ -941,25 +941,23 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 relative overflow-hidden">
-        {/* Background texture */}
-        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        {/* Gold glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(245,197,24,0.06) 0%, transparent 70%)' }} />
+        {/* Dot texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        {/* Red glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(196,21,21,0.12) 0%, transparent 65%)' }} />
 
         <div className="relative w-full max-w-sm">
-          {/* Logo block */}
+          {/* Logo */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5" style={{ background: 'linear-gradient(135deg, #f5c518 0%, #e6a800 100%)' }}>
-              <span className="text-black font-black text-2xl">C1</span>
-            </div>
-            <h1 className="text-white font-black text-3xl uppercase tracking-tighter">
-              CUATRO<span style={{ color: '#f5c518' }}>UNO</span>
-            </h1>
-            <p className="text-zinc-600 text-xs uppercase tracking-[0.3em] mt-2">Panel de administración</p>
+            <img src="/logo.png" alt="Cuatrouno" className="h-16 w-auto mx-auto mb-4 drop-shadow-lg" />
+            <p className="text-zinc-600 text-[10px] uppercase tracking-[0.35em]">Panel de administración</p>
           </div>
 
-          {/* Card */}
-          <div className="rounded-2xl p-8" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
+          {/* Glass card */}
+          <div className="rounded-2xl p-8 relative overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
+            {/* Red top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, #C41515, transparent)' }} />
+
             <label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest block mb-2">Contraseña</label>
             <input
               type="password"
@@ -967,21 +965,25 @@ export default function AdminPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              className="w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-700 focus:outline-none transition-colors mb-4 text-sm"
-              style={{ borderColor: error ? '#ef4444' : 'rgba(255,255,255,0.1)' }}
+              className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-700 focus:outline-none transition-all mb-4 text-sm"
+              style={{
+                background: 'rgba(0,0,0,0.4)',
+                border: `1px solid ${error ? '#C41515' : 'rgba(255,255,255,0.08)'}`,
+              }}
               autoFocus
             />
             {error && (
-              <p className="text-red-500 text-xs mb-4 flex items-center gap-1">
-                <span>✕</span> {error}
+              <p className="text-red-500 text-xs mb-4 flex items-center gap-1.5">
+                <span className="font-black">✕</span> {error}
               </p>
             )}
             <button
               onClick={handleLogin}
-              className="w-full font-black py-3.5 rounded-xl transition-all text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg, #f5c518 0%, #e6a800 100%)', color: '#0a0a0a' }}
+              className="w-full font-black py-3.5 rounded-xl transition-all text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] text-white relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #C41515 0%, #8b0000 100%)' }}
             >
-              Ingresar
+              <span className="relative z-10">Ingresar</span>
+              <span className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(135deg, #e01515 0%, #a00000 100%)' }} />
             </button>
           </div>
 
