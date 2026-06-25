@@ -194,9 +194,10 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
 
   return (
     <Modal title="Nueva Venta" onClose={onClose}>
+      {/* Header fijo */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <Field label="Fecha"><input type="date" className={inputCls} value={fecha} onChange={e => setFecha(e.target.value)} /></Field>
-        <Field label="Método de pago">
+        <Field label="Método">
           <select className={selectCls} value={metodo_pago} onChange={e => setMetodoPago(e.target.value)}>
             <option value="efectivo">Efectivo</option>
             <option value="mercadopago">MercadoPago</option>
@@ -206,67 +207,70 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
         </Field>
       </div>
 
-      <div className="grid grid-cols-[1fr_48px_90px_90px_24px] gap-1 mb-1 px-1">
-        {['Producto','Cant.','Precio','Costo',''].map(h => (
-          <span key={h} className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">{h}</span>
-        ))}
-      </div>
-      <div className="space-y-1 mb-2">
-        {items.map((it, i) => (
-          <div key={i} className="space-y-0.5">
-            <div className="grid grid-cols-[1fr_48px_90px_90px_24px] gap-1 items-center">
-              <div className="relative">
-                <input
-                  type="text"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-xs placeholder-zinc-500 focus:outline-none focus:border-yellow-400"
-                  placeholder="Buscar..."
-                  value={it.query}
-                  onChange={e => handleQuery(i, e.target.value)}
-                  onFocus={() => it.query.length > 1 && setActiveIdx(i)}
-                  onBlur={() => setTimeout(() => setActiveIdx(null), 150)}
-                />
-                {activeIdx === i && suggestions(i).length > 0 && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-lg overflow-hidden shadow-xl max-h-48 overflow-y-auto">
-                    {suggestions(i).map(p => (
-                      <button key={p.id} type="button" onMouseDown={() => selectProduct(i, p)}
-                        className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-white text-xs font-semibold truncate">{p.name}</p>
-                          <p className="text-zinc-400 text-[10px]">stock: {p.stock}</p>
-                        </div>
-                        <p className="text-yellow-400 text-xs font-black flex-shrink-0">${p.price.toLocaleString('es-AR')}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
+      {/* Tabla productos con scroll interno */}
+      <div className="border border-zinc-700 rounded-xl overflow-hidden mb-3">
+        <div className="grid grid-cols-[1fr_52px_96px_80px_28px] gap-0 bg-zinc-900 px-2 py-1.5 border-b border-zinc-700">
+          {['Producto','Cant.','Precio','Costo',''].map(h => (
+            <span key={h} className="text-zinc-500 text-[9px] font-black uppercase tracking-widest">{h}</span>
+          ))}
+        </div>
+        <div className="max-h-[240px] overflow-y-auto divide-y divide-zinc-800">
+          {items.map((it, i) => (
+            <div key={i} className="px-2 py-2 space-y-1">
+              <div className="grid grid-cols-[1fr_52px_96px_80px_28px] gap-1 items-center">
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white text-xs placeholder-zinc-500 focus:outline-none focus:border-yellow-400"
+                    placeholder="Buscar..."
+                    value={it.query}
+                    onChange={e => handleQuery(i, e.target.value)}
+                    onFocus={() => it.query.length > 1 && setActiveIdx(i)}
+                    onBlur={() => setTimeout(() => setActiveIdx(null), 150)}
+                  />
+                  {activeIdx === i && suggestions(i).length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-lg overflow-hidden shadow-xl max-h-44 overflow-y-auto">
+                      {suggestions(i).map(p => (
+                        <button key={p.id} type="button" onMouseDown={() => selectProduct(i, p)}
+                          className="w-full text-left px-3 py-1.5 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-white text-xs font-semibold truncate">{p.name}</p>
+                            <p className="text-zinc-400 text-[10px]">stock: {p.stock}</p>
+                          </div>
+                          <p className="text-yellow-400 text-xs font-black flex-shrink-0">${p.price.toLocaleString('es-AR')}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <input type="number" min="1" value={it.cantidad}
+                  onChange={e => updateItem(i, { cantidad: Number(e.target.value) })}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-1 py-1 text-white text-xs text-center focus:outline-none focus:border-yellow-400" />
+                <input type="number" placeholder="0" value={it.precio_unitario || ''}
+                  onChange={e => updateItem(i, { precio_unitario: Number(e.target.value) })}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-yellow-400" />
+                <input type="number" placeholder="0" value={it.costo || ''}
+                  onChange={e => updateItem(i, { costo: Number(e.target.value) })}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-yellow-400" />
+                <button type="button" onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
+                  className={`text-zinc-600 hover:text-red-400 transition-colors text-base leading-none text-center ${items.length === 1 ? 'invisible' : ''}`}>×</button>
               </div>
-              <input type="number" min="1" value={it.cantidad}
-                onChange={e => updateItem(i, { cantidad: Number(e.target.value) })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-xs text-center focus:outline-none focus:border-yellow-400" />
-              <input type="number" placeholder="0" value={it.precio_unitario || ''}
-                onChange={e => updateItem(i, { precio_unitario: Number(e.target.value) })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-yellow-400" />
-              <input type="number" placeholder="0" value={it.costo || ''}
-                onChange={e => updateItem(i, { costo: Number(e.target.value) })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-yellow-400" />
-              <button type="button" onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))}
-                className={`text-zinc-600 hover:text-red-400 transition-colors text-base leading-none ${items.length === 1 ? 'invisible' : ''}`}>×</button>
+              {it.selectedProduct && (
+                <p className="text-[10px] text-green-400">
+                  stock: {it.selectedProduct.stock} → {Math.max(0, it.selectedProduct.stock - it.cantidad)} u
+                  {it.precio_unitario > 0 && <span className="text-yellow-400 font-black ml-2">{fmt(it.precio_unitario * it.cantidad)}</span>}
+                </p>
+              )}
             </div>
-            {it.selectedProduct && (
-              <p className="text-[10px] text-green-400 pl-1">
-                stock: {it.selectedProduct.stock} → {Math.max(0, it.selectedProduct.stock - it.cantidad)} u
-                {it.precio_unitario > 0 && <span className="text-yellow-400 ml-2 font-black">{fmt(it.precio_unitario * it.cantidad)}</span>}
-              </p>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+        <button type="button" onClick={() => setItems(prev => [...prev, emptyLine()])}
+          className="w-full text-zinc-500 hover:text-yellow-400 hover:bg-zinc-800 text-xs font-black py-2 transition-colors border-t border-zinc-700">
+          + Agregar producto
+        </button>
       </div>
 
-      <button type="button" onClick={() => setItems(prev => [...prev, emptyLine()])}
-        className="w-full border border-dashed border-zinc-700 hover:border-yellow-400 text-zinc-500 hover:text-yellow-400 text-xs font-black py-1.5 rounded-lg mb-3 transition-colors">
-        + Agregar producto
-      </button>
-
+      {/* Footer fijo */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <Field label="Descuento ($)">
           <input type="number" className={inputCls} placeholder="0" value={descuento || ''} onChange={e => setDescuento(Number(e.target.value))} />
@@ -277,14 +281,14 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
       </div>
 
       {subtotal > 0 && (
-        <div className="bg-zinc-800 rounded-lg px-3 py-2 mb-3 space-y-1 text-sm">
-          <div className="flex justify-between text-zinc-400"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
-          {descuento > 0 && <div className="flex justify-between text-red-400"><span>Descuento</span><span>−{fmt(descuento)}</span></div>}
-          <div className="flex justify-between text-yellow-400 font-black border-t border-zinc-700 pt-1 mt-1"><span>Total</span><span>{fmt(total)}</span></div>
+        <div className="bg-zinc-800 rounded-lg px-3 py-2 mb-3 flex gap-4 text-sm justify-end items-center">
+          <span className="text-zinc-400">Subtotal <span className="text-white font-bold">{fmt(subtotal)}</span></span>
+          {descuento > 0 && <span className="text-red-400">Desc. <span className="font-bold">−{fmt(descuento)}</span></span>}
+          <span className="text-yellow-400 font-black text-base">Total {fmt(total)}</span>
         </div>
       )}
 
-      <button onClick={save} disabled={saving} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-black font-black py-3 rounded-xl mt-2">
+      <button onClick={save} disabled={saving} className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-black font-black py-3 rounded-xl">
         {saving ? 'Guardando...' : `Guardar Venta${items.length > 1 ? ` (${items.length} productos)` : ''}`}
       </button>
     </Modal>
