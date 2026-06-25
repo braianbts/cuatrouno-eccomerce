@@ -21,7 +21,7 @@ export default function CartDrawer({ open, onClose }: Props) {
 
   const t = total()
   const precioEfectivo = Math.round(t * 0.95)
-  const precioCuota = Math.ceil(t / 0.9077 / 3)
+  const precioCuota = Math.ceil(t / 0.894 / 3)
 
   return (
     <>
