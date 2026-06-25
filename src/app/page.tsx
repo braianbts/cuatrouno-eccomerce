@@ -35,10 +35,11 @@ export default async function HomePage() {
 
       {/* Trust bar */}
       <div style={{ backgroundColor: '#F5C518' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row gap-4 sm:gap-12 justify-center">
-          {[{ icon: Shield, text: 'Marcas oficiales' }, { icon: Zap, text: 'Asesoramiento personalizado' }, { icon: Truck, text: 'Envíos a todo el país' }].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2 text-black text-[11px] font-black uppercase tracking-widest">
-              <Icon size={14} />{text}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex flex-row sm:flex-row gap-0 sm:gap-12 justify-around sm:justify-center">
+          {[{ icon: Shield, text: 'Marcas oficiales' }, { icon: Zap, text: 'Asesoramiento' }, { icon: Truck, text: 'Envíos gratis' }].map(({ icon: Icon, text }, idx) => (
+            <div key={text} className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-black font-black uppercase tracking-widest text-center">
+              <Icon size={13} />
+              <span className="text-[8px] sm:text-[11px] leading-tight">{text}</span>
             </div>
           ))}
         </div>
