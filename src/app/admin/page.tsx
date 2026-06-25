@@ -940,15 +940,52 @@ export default function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 w-full max-w-sm">
-          <div className="text-center mb-8">
-            <p className="text-white font-black text-2xl">CUATRO<span className="text-yellow-400">UNO</span></p>
-            <p className="text-zinc-400 text-sm mt-1">Panel de administración</p>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 relative overflow-hidden">
+        {/* Background texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        {/* Gold glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(245,197,24,0.06) 0%, transparent 70%)' }} />
+
+        <div className="relative w-full max-w-sm">
+          {/* Logo block */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5" style={{ background: 'linear-gradient(135deg, #f5c518 0%, #e6a800 100%)' }}>
+              <span className="text-black font-black text-2xl">C1</span>
+            </div>
+            <h1 className="text-white font-black text-3xl uppercase tracking-tighter">
+              CUATRO<span style={{ color: '#f5c518' }}>UNO</span>
+            </h1>
+            <p className="text-zinc-600 text-xs uppercase tracking-[0.3em] mt-2">Panel de administración</p>
           </div>
-          <input type="password" placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-yellow-400 mb-3" />
-          {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
-          <button onClick={handleLogin} className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-black py-3 rounded-xl transition-colors">Ingresar</button>
+
+          {/* Card */}
+          <div className="rounded-2xl p-8" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
+            <label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest block mb-2">Contraseña</label>
+            <input
+              type="password"
+              placeholder="••••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()}
+              className="w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-700 focus:outline-none transition-colors mb-4 text-sm"
+              style={{ borderColor: error ? '#ef4444' : 'rgba(255,255,255,0.1)' }}
+              autoFocus
+            />
+            {error && (
+              <p className="text-red-500 text-xs mb-4 flex items-center gap-1">
+                <span>✕</span> {error}
+              </p>
+            )}
+            <button
+              onClick={handleLogin}
+              className="w-full font-black py-3.5 rounded-xl transition-all text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: 'linear-gradient(135deg, #f5c518 0%, #e6a800 100%)', color: '#0a0a0a' }}
+            >
+              Ingresar
+            </button>
+          </div>
+
+          <p className="text-zinc-700 text-xs text-center mt-6 uppercase tracking-widest">Cuatrouno Suplementos © 2026</p>
         </div>
       </div>
     )
