@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const desktopSlides = [
-  { src: '/banner-1.jpg', alt: 'No es ropa. Es disciplina.' },
+  { src: '/bannerwebnuevo1.jpg', alt: 'No es ropa. Es disciplina.' },
   { src: '/banner-2.jpg', alt: 'Envíos gratis Escobar y alrededores.' },
 ]
 
