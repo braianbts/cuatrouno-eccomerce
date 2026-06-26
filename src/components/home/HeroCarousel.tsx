@@ -10,7 +10,7 @@ const desktopSlides = [
 ]
 
 const mobileSlides = [
-  { src: '/banner-cel1.jpeg', alt: 'No es ropa. Es disciplina.' },
+  { src: '/bannercel1nuevo.jpg', alt: 'No es ropa. Es disciplina.' },
   { src: '/banner-cel2.jpeg', alt: 'Envíos gratis Escobar y alrededores.' },
 ]
 
