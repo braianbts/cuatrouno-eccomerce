@@ -1092,7 +1092,7 @@ function VisitasTab() {
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-white text-sm font-semibold truncate">{label}</span>
                       <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded flex-shrink-0"
-                        style={{ backgroundColor: isProducto ? 'rgba(196,21,21,0.15)', color: '#C41515' }}>
+                        style={{ backgroundColor: isProducto ? 'rgba(196,21,21,0.15)' : 'rgba(255,255,255,0.06)', color: isProducto ? '#C41515' : '#71717a' }}>
                         {tag}
                       </span>
                     </div>
