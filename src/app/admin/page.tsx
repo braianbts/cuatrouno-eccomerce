@@ -1081,7 +1081,7 @@ function VisitasTab() {
               const slug = isProducto ? p.path.replace('/producto/', '') : ''
               const productName = slug
                 .split('-')
-                .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(' ')
               const label = known?.label ?? (isProducto ? productName : p.path)
               const tag = known?.tag ?? (isProducto ? 'producto' : 'página')
