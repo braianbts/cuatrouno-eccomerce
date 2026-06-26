@@ -18,13 +18,13 @@ export default async function IndumentariaSection() {
   if (products.length === 0) return null
 
   return (
-    <section className="relative w-full overflow-hidden bg-black" style={{ aspectRatio: '16/6.2' }}>
+    <section className="relative w-full overflow-hidden bg-black" style={{ aspectRatio: '16/7' }}>
       {/* Background image */}
       <Image
         src="/sectionindumentaria.jpg"
         alt="Indumentaria Cuatrouno Training Club"
         fill
-        className="object-cover object-center"
+        className="object-contain object-left"
         quality={95}
         sizes="100vw"
       />
