@@ -1064,23 +1064,43 @@ function VisitasTab() {
       <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6">
         <h3 className="text-white font-black text-sm uppercase tracking-widest mb-5">Páginas más visitadas — últimos 30 días</h3>
         {loading ? (
-          <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-9 bg-zinc-700 rounded-xl animate-pulse" />)}</div>
+          <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-14 bg-zinc-700 rounded-xl animate-pulse" />)}</div>
         ) : pages.length === 0 ? (
           <p className="text-zinc-600 text-sm text-center py-8">Sin datos aún.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {pages.map((p, i) => {
               const pct = Math.round((p.total / (pages[0]?.total || 1)) * 100)
+              const LABELS: Record<string, { label: string; tag: string }> = {
+                '/': { label: 'Inicio', tag: 'home' },
+                '/productos': { label: 'Catálogo de productos', tag: 'catálogo' },
+                '/contacto': { label: 'Contacto', tag: 'contacto' },
+              }
+              const known = LABELS[p.path]
+              const isProducto = p.path.startsWith('/producto/')
+              const slug = isProducto ? p.path.replace('/producto/', '') : ''
+              const productName = slug
+                .split('-')
+                .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ')
+              const label = known?.label ?? (isProducto ? productName : p.path)
+              const tag = known?.tag ?? (isProducto ? 'producto' : 'página')
               return (
-                <div key={p.path} className="flex items-center gap-4">
-                  <span className="text-zinc-600 text-xs w-4 text-right">{i + 1}</span>
+                <div key={p.path} className="flex items-center gap-3 bg-zinc-900 rounded-xl px-4 py-3">
+                  <span className="text-zinc-600 text-xs font-black w-5 text-right flex-shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-white text-sm font-mono truncate">{p.path}</span>
-                      <span className="text-zinc-400 text-xs font-bold ml-4 flex-shrink-0">{p.total}</span>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-white text-sm font-semibold truncate">{label}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded flex-shrink-0"
+                        style={{ backgroundColor: isProducto ? 'rgba(196,21,21,0.15)', color: '#C41515' }}>
+                        {tag}
+                      </span>
                     </div>
-                    <div className="h-1 bg-zinc-700 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#C41515' }} />
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: '#C41515' }} />
+                      </div>
+                      <span className="text-zinc-400 text-xs font-black flex-shrink-0">{p.total} visitas</span>
                     </div>
                   </div>
                 </div>
