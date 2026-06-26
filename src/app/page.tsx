@@ -6,6 +6,7 @@ import { ArrowRight, Shield, Zap, Truck } from 'lucide-react'
 import HeroCarousel from '@/components/home/HeroCarousel'
 import TrainingCTA from '@/components/home/TrainingCTA'
 import BrandMarquee from '@/components/home/BrandMarquee'
+import IndumentariaSection from '@/components/home/IndumentariaSection'
 
 export const metadata: Metadata = {
   title: 'Cuatrouno Suplementos | Tienda de Suplementos en Escobar',
@@ -125,6 +126,7 @@ export default async function HomePage() {
 
       <BrandMarquee />
       <TrainingCTA />
+      <IndumentariaSection />
 
       {/* CTA - gold */}
       <section className="relative overflow-hidden" style={{ backgroundColor: '#f5c518', minHeight: '320px' }}>

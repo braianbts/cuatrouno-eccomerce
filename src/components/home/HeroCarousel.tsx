@@ -6,12 +6,12 @@ import Link from 'next/link'
 
 const desktopSlides = [
   { src: '/bannerwebnuevo1.jpg', alt: 'No es ropa. Es disciplina.' },
-  { src: '/banner-2.jpg', alt: 'Envíos gratis Escobar y alrededores.' },
+  
 ]
 
 const mobileSlides = [
   { src: '/bannercel1nuevo.jpg', alt: 'No es ropa. Es disciplina.' },
-  { src: '/banner-cel2.jpeg', alt: 'Envíos gratis Escobar y alrededores.' },
+  
 ]
 
 export default function HeroCarousel() {
