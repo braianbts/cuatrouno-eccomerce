@@ -47,8 +47,6 @@ export default function HeroCarousel() {
           </div>
         ))}
 
-        <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-colors text-lg font-black">‹</button>
-        <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-colors text-lg font-black">›</button>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
           {desktopSlides.map((_, i) => (
@@ -85,8 +83,6 @@ export default function HeroCarousel() {
           </div>
         ))}
 
-        <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-colors text-lg font-black">‹</button>
-        <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-colors text-lg font-black">›</button>
 
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
           {mobileSlides.map((_, i) => (
