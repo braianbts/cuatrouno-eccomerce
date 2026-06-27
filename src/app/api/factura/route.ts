@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { ventaId, importe, puntoVenta = 1 } = body
+    const { ventaId, importe, puntoVenta = 4 } = body
 
     if (!ventaId || !importe) {
       return NextResponse.json({ error: 'ventaId e importe requeridos' }, { status: 400 })
