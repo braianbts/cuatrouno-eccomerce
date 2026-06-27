@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="border-t border-white/5">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-2">
               <p className="text-white/20 text-xs">© {new Date().getFullYear()} Cuatrouno Suplementos. Todos los derechos reservados.</p>
-              <p className="text-white/15 text-xs">Escobar, Buenos Aires, Argentina</p>
+              <p className="text-white/15 text-xs">Desarrollado por <span className="text-white/25">Braian Yamil Barrientos</span> · Ingeniero en Sistemas M. 417/441</p>
             </div>
           </div>
         </footer>
