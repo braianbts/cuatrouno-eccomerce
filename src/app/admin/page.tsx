@@ -21,6 +21,10 @@ interface Venta {
   ganancia: number
   notas?: string
   created_at: string
+  factura_emitida?: boolean
+  factura_numero?: number
+  factura_cae?: string
+  factura_vto_cae?: string
 }
 
 interface Gasto {
@@ -580,6 +584,28 @@ function VentasTab() {
   const [showForm, setShowForm] = useState(false)
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [emitiendo, setEmitiendo] = useState<string | null>(null)
+
+  const emitirFactura = async (g: VentaGrupo) => {
+    if (!confirm(`¿Emitir Factura C por ${fmt(g.total)}?`)) return
+    setEmitiendo(g.key)
+    try {
+      const ventaId = g.items[0].id
+      const res = await fetch('/api/factura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ventaId, importe: g.total }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      alert(`✅ Factura C N° ${data.numero}\nCAE: ${data.cae}\nVto: ${data.vencimientoCAE}`)
+      fetch_()
+    } catch (err: unknown) {
+      alert(`❌ Error: ${err instanceof Error ? err.message : 'desconocido'}`)
+    } finally {
+      setEmitiendo(null)
+    }
+  }
 
   const fetch_ = useCallback(async () => {
     setLoading(true)
@@ -635,6 +661,10 @@ function VentasTab() {
                     <p className="text-zinc-500 text-xs">{g.fecha} · <span className={METODO_COLORS[g.metodo_pago] || 'text-zinc-400'}>{g.metodo_pago}</span>{g.notas && <span className="text-zinc-600"> · {g.notas}</span>}</p>
                   </div>
                   <p className="text-yellow-400 font-black text-sm flex-shrink-0">{fmt(g.total)}</p>
+                  {g.items[0]?.factura_emitida
+                    ? <span className="text-[9px] font-black uppercase tracking-wider text-emerald-400 border border-emerald-400/30 px-1.5 py-0.5 rounded flex-shrink-0">F.C #{g.items[0].factura_numero}</span>
+                    : <button onClick={e => { e.stopPropagation(); emitirFactura(g) }} disabled={emitiendo === g.key} className="text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white border border-zinc-700 hover:border-white/40 px-1.5 py-0.5 rounded flex-shrink-0 transition-colors disabled:opacity-50">{emitiendo === g.key ? '...' : 'Facturar'}</button>
+                  }
                   {isMulti && <span className="text-zinc-500 text-[10px]">{isOpen ? '▲' : '▼'}</span>}
                   <button onClick={e => { e.stopPropagation(); delGrupo(g) }} className="text-zinc-600 hover:text-red-400 p-1 flex-shrink-0"><Trash2 size={14} /></button>
                 </div>
