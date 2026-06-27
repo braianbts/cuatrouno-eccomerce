@@ -13,6 +13,25 @@ export async function POST(req: NextRequest) {
 
     const resultado = await emitirFacturaC({ puntoVenta, importe })
 
+    // Link al visor oficial de AFIP
+    const qrData = Buffer.from(JSON.stringify({
+      ver: 1,
+      fecha: new Date().toISOString().slice(0, 10),
+      cuit: Number(process.env.AFIP_CUIT),
+      ptoVta: puntoVenta,
+      tipoCmp: 11,
+      nroCmp: resultado.numero,
+      importe,
+      moneda: 'PES',
+      ctz: 1,
+      tipoDocRec: 99,
+      nroDocRec: 0,
+      tipoCodAut: 'E',
+      codAut: Number(resultado.cae),
+    })).toString('base64')
+
+    const urlVisor = `https://www.afip.gob.ar/fe/qr/?p=${qrData}`
+
     // Guardar CAE en la venta
     await supabase
       .from('ventas')
@@ -24,7 +43,7 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', ventaId)
 
-    return NextResponse.json(resultado)
+    return NextResponse.json({ ...resultado, urlVisor })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error desconocido'
     return NextResponse.json({ error: msg }, { status: 500 })

@@ -598,8 +598,10 @@ function VentasTab() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      alert(`✅ Factura C N° ${data.numero}\nCAE: ${data.cae}\nVto: ${data.vencimientoCAE}`)
       fetch_()
+      if (data.urlVisor && confirm(`✅ Factura C N° ${data.numero}\nCAE: ${data.cae}\nVto: ${data.vencimientoCAE}\n\n¿Ver comprobante en AFIP?`)) {
+        window.open(data.urlVisor, '_blank')
+      }
     } catch (err: unknown) {
       alert(`❌ Error: ${err instanceof Error ? err.message : 'desconocido'}`)
     } finally {
