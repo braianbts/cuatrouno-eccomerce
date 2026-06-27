@@ -13,6 +13,28 @@ import Link from 'next/link'
 
 type Variant = { name: string; image: string; stock: number }
 
+const COMPLEMENT_MAP: Record<string, string[]> = {
+  proteinas:    ['creatina', 'pre-workout', 'aminoacidos'],
+  creatina:     ['proteinas', 'pre-workout', 'vitaminas'],
+  'pre-workout':['proteinas', 'creatina', 'aminoacidos'],
+  vitaminas:    ['proteinas', 'aminoacidos', 'creatina'],
+  aminoacidos:  ['proteinas', 'pre-workout', 'vitaminas'],
+  quemadores:   ['vitaminas', 'proteinas', 'aminoacidos'],
+  otros:        ['proteinas', 'creatina', 'vitaminas'],
+  indumentaria: ['proteinas', 'creatina', 'pre-workout'],
+}
+
+const CATEGORY_LABEL: Record<string, string> = {
+  proteinas:    'Proteína',
+  creatina:     'Creatina',
+  'pre-workout':'Pre-Entreno',
+  vitaminas:    'Vitaminas',
+  aminoacidos:  'Aminoácidos',
+  quemadores:   'Quemador',
+  otros:        'Accesorio',
+  indumentaria: 'Indumentaria',
+}
+
 function parseVariants(flavor: string | null): Variant[] | null {
   if (!flavor) return null
   try {
@@ -41,12 +63,24 @@ export default function ProductoPage() {
         const variants = parseVariants(data?.flavor ?? null)
         if (variants) setSelectedVariant(variants[0])
         if (data) {
-          supabase.from('products').select('*')
-            .eq('category', data.category)
-            .neq('slug', data.slug)
-            .eq('active', true)
-            .limit(4)
-            .then(({ data: rel }) => setRelated(rel ?? []))
+          const complementCats = COMPLEMENT_MAP[data.category] ?? []
+          if (complementCats.length > 0) {
+            supabase.from('products').select('*')
+              .in('category', complementCats)
+              .eq('active', true)
+              .gt('stock', 0)
+              .limit(12)
+              .then(({ data: all }) => {
+                if (!all) return
+                // Pick best (cheapest or first) per complementary category
+                const picked: Product[] = []
+                for (const cat of complementCats) {
+                  const match = all.filter(p => p.category === cat && !p.name.toLowerCase().includes('combo'))
+                  if (match.length > 0) picked.push(match[0])
+                }
+                setRelated(picked.slice(0, 4))
+              })
+          }
         }
       })
   }, [slug])
@@ -281,31 +315,55 @@ export default function ProductoPage() {
         </div>
       </div>
 
-      {/* Related products */}
+      {/* Completa tu stack */}
       {related.length > 0 && (
-        <div className="border-t border-black/5 mt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-black/30 mb-8">También te puede interesar</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mt-16" style={{ backgroundColor: '#0a0a0a' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            {/* Header */}
+            <div className="mb-10">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-1 h-6" style={{ backgroundColor: '#C41515' }} />
+                <p className="text-white font-black text-xl uppercase tracking-[0.15em]">Completa tu stack</p>
+              </div>
+              <p className="text-white/30 text-xs uppercase tracking-widest ml-4">Los que compran esto también llevan</p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {related.map((p) => {
                 const relDiscount = p.compare_price
                   ? Math.round(((p.compare_price - p.price) / p.compare_price) * 100)
                   : null
                 return (
-                  <Link key={p.id} href={`/producto/${p.slug}`} className="group bg-white border border-black/5 hover:border-[#C41515]/30 transition-all flex flex-col">
-                    <div className="relative aspect-square bg-white overflow-hidden">
-                      {p.images?.[0] ? (
-                        <Image src={p.images[0]} alt={p.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-black/10 text-2xl font-black">C1</div>
-                      )}
-                      {relDiscount && (
-                        <span className="absolute top-0 left-0 text-white text-[9px] font-black px-1.5 py-0.5" style={{ backgroundColor: '#C41515' }}>-{relDiscount}%</span>
-                      )}
+                  <Link key={p.id} href={`/producto/${p.slug}`} className="group relative flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1" style={{ backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    {/* Category pill top */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 text-white" style={{ backgroundColor: '#C41515' }}>
+                        {CATEGORY_LABEL[p.category] ?? p.category}
+                      </span>
                     </div>
-                    <div className="p-3 border-t border-black/5 flex-1 flex flex-col justify-between">
-                      <p className="text-black/80 font-bold text-[11px] uppercase leading-tight line-clamp-2 group-hover:text-black transition-colors mb-2">{p.name}</p>
-                      <span className="font-black text-base" style={{ color: '#C41515' }}>${p.price.toLocaleString('es-AR')}</span>
+
+                    {relDiscount && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <span className="text-[8px] font-black px-1.5 py-0.5 text-white" style={{ backgroundColor: '#16a34a' }}>-{relDiscount}%</span>
+                      </div>
+                    )}
+
+                    <div className="relative aspect-square overflow-hidden" style={{ backgroundColor: '#1a1a1a' }}>
+                      {p.images?.[0] ? (
+                        <Image src={p.images[0]} alt={p.name} fill className="object-contain p-4 group-hover:scale-110 transition-transform duration-500 brightness-90 group-hover:brightness-100" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/10 text-2xl font-black">C1</div>
+                      )}
+                      {/* Red bottom glow on hover */}
+                      <div className="absolute inset-x-0 bottom-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundColor: '#C41515' }} />
+                    </div>
+
+                    <div className="p-3 flex-1 flex flex-col justify-between">
+                      <p className="text-white/70 font-bold text-[10px] uppercase leading-tight line-clamp-2 group-hover:text-white transition-colors mb-3">{p.name}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-lg text-white">${p.price.toLocaleString('es-AR')}</span>
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-1 text-white/60 border border-white/10 group-hover:border-[#C41515]/50 group-hover:text-white transition-all">Ver →</span>
+                      </div>
                     </div>
                   </Link>
                 )

@@ -5,7 +5,9 @@ import Navbar from "@/components/layout/Navbar";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import CreatinaToast from "@/components/CreatinaToast";
 import { Analytics } from "@vercel/analytics/react";
-import PageTracker from "@/components/PageTracker";
+import PageTracker from "@/components/PageTracker"
+import IntroSplash from "@/components/IntroSplash"
+import TriviaWidget from "@/components/TriviaWidget";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -65,6 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.528 5.855L0 24l6.335-1.508A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.373l-.36-.214-3.727.977.994-3.634-.235-.374A9.818 9.818 0 1112 21.818z"/>
           </svg>
         </a>
+        <IntroSplash />
+        <TriviaWidget />
         <AnnouncementBar />
         <CreatinaToast />
         <Navbar />

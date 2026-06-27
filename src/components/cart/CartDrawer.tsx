@@ -1,7 +1,8 @@
 'use client'
 
-import { X, Trash2, MessageCircle, ShoppingBag } from 'lucide-react'
+import { X, Trash2, MessageCircle, ShoppingBag, Trophy } from 'lucide-react'
 import { useCart } from '@/store/cart'
+import { useTrivia } from '@/store/trivia'
 import Image from 'next/image'
 import { useState } from 'react'
 
@@ -10,20 +11,24 @@ type PayMethod = 'efectivo' | 'transferencia' | 'cuotas' | ''
 
 export default function CartDrawer({ open, onClose }: Props) {
   const { items, remove, update, total, buildWhatsAppMessage, clear } = useCart()
+  const { hasDiscount, setDiscount } = useTrivia()
   const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
   const [payMethod, setPayMethod] = useState<PayMethod>('')
 
   const handleCheckout = () => {
     if (!payMethod) return
-    const msg = buildWhatsAppMessage(payMethod)
+    const msg = buildWhatsAppMessage(payMethod, hasDiscount)
     window.open(`https://wa.me/${waNumber}?text=${msg}`, '_blank')
     clear()
+    setDiscount(false)
     onClose()
   }
 
   const t = total()
-  const precioEfectivo = Math.round(t * 0.95)
-  const precioCuota = Math.ceil(t / 0.894 / 3)
+  const tWithTrivia = hasDiscount ? Math.round(t * 0.95) : t
+  const precioEfectivo = hasDiscount ? Math.round(t * 0.95 * 0.95) : Math.round(t * 0.95)
+  const precioTransferencia = tWithTrivia
+  const precioCuota = Math.ceil(tWithTrivia / 0.894 / 3)
 
   return (
     <>
@@ -57,12 +62,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               <div key={item.product.id} className="flex gap-3 bg-[#1a1a1a] p-3">
                 {item.product.images?.[0] && (
                   <div className="relative w-16 h-16 flex-shrink-0 bg-[#222]">
-                    <Image
-                      src={item.product.images[0]}
-                      alt={item.product.name}
-                      fill
-                      className="object-cover"
-                    />
+                    <Image src={item.product.images[0]} alt={item.product.name} fill className="object-cover" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -71,23 +71,10 @@ export default function CartDrawer({ open, onClose }: Props) {
                     ${item.product.price.toLocaleString('es-AR')}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <button
-                      onClick={() => update(item.product.id, item.quantity - 1)}
-                      className="w-6 h-6 bg-[#333] text-white text-sm flex items-center justify-center hover:bg-[#444] transition-colors"
-                    >
-                      −
-                    </button>
+                    <button onClick={() => update(item.product.id, item.quantity - 1)} className="w-6 h-6 bg-[#333] text-white text-sm flex items-center justify-center hover:bg-[#444] transition-colors">−</button>
                     <span className="text-white text-sm font-bold w-5 text-center">{item.quantity}</span>
-                    <button
-                      onClick={() => update(item.product.id, item.quantity + 1)}
-                      className="w-6 h-6 bg-[#333] text-white text-sm flex items-center justify-center hover:bg-[#444] transition-colors"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => remove(item.product.id)}
-                      className="ml-auto text-white/20 hover:text-red-500 transition-colors"
-                    >
+                    <button onClick={() => update(item.product.id, item.quantity + 1)} className="w-6 h-6 bg-[#333] text-white text-sm flex items-center justify-center hover:bg-[#444] transition-colors">+</button>
+                    <button onClick={() => remove(item.product.id)} className="ml-auto text-white/20 hover:text-red-500 transition-colors">
                       <Trash2 size={13} />
                     </button>
                   </div>
@@ -99,17 +86,27 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         {items.length > 0 && (
           <div className="px-5 py-5 border-t border-white/5 space-y-3">
-            <div className="flex justify-between items-baseline mb-3">
+            {/* Trivia discount badge */}
+            {hasDiscount && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ backgroundColor: 'rgba(22,163,74,0.12)', border: '1px solid rgba(22,163,74,0.25)' }}>
+                <Trophy size={14} style={{ color: '#4ade80' }} />
+                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#4ade80' }}>Descuento trivia −5% aplicado</span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-baseline mb-1">
               <span className="text-white/40 text-xs uppercase tracking-widest">Total</span>
-              <span className="font-black text-2xl text-white">${t.toLocaleString('es-AR')}</span>
+              <div className="text-right">
+                {hasDiscount && <p className="text-white/25 text-sm line-through">${t.toLocaleString('es-AR')}</p>}
+                <span className="font-black text-2xl text-white">${tWithTrivia.toLocaleString('es-AR')}</span>
+              </div>
             </div>
 
-            {/* Payment method selector */}
             <p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">Método de pago</p>
             <div className="space-y-2 mb-4">
               {[
                 { id: 'efectivo' as PayMethod, label: '💵 Efectivo', sub: `$${precioEfectivo.toLocaleString('es-AR')} — 5% off`, color: '#16a34a' },
-                { id: 'transferencia' as PayMethod, label: '🏦 Transferencia', sub: `$${t.toLocaleString('es-AR')}`, color: '#a16207' },
+                { id: 'transferencia' as PayMethod, label: '🏦 Transferencia', sub: `$${precioTransferencia.toLocaleString('es-AR')}`, color: '#a16207' },
                 { id: 'cuotas' as PayMethod, label: '💳 3 cuotas', sub: `3 × $${precioCuota.toLocaleString('es-AR')} · no Amex`, color: '#2563eb' },
               ].map(({ id, label, sub, color }) => (
                 <button
@@ -136,10 +133,7 @@ export default function CartDrawer({ open, onClose }: Props) {
               <MessageCircle size={18} />
               {payMethod ? 'Pedir por WhatsApp' : 'Elegí un método de pago'}
             </button>
-            <button
-              onClick={clear}
-              className="w-full text-white/20 hover:text-white/50 text-xs uppercase tracking-widest py-1 transition-colors"
-            >
+            <button onClick={clear} className="w-full text-white/20 hover:text-white/50 text-xs uppercase tracking-widest py-1 transition-colors">
               Vaciar carrito
             </button>
           </div>

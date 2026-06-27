@@ -16,7 +16,7 @@ type CartStore = {
   clear: () => void
   total: () => number
   count: () => number
-  buildWhatsAppMessage: (paymentMethod?: string) => string
+  buildWhatsAppMessage: (paymentMethod?: string, triviaDiscount?: boolean) => string
 }
 
 export const useCart = create<CartStore>()(
@@ -66,7 +66,7 @@ export const useCart = create<CartStore>()(
         return get().items.reduce((sum, i) => sum + i.quantity, 0)
       },
 
-      buildWhatsAppMessage: (paymentMethod?: string) => {
+      buildWhatsAppMessage: (paymentMethod?: string, triviaDiscount?: boolean) => {
         const items = get().items
         if (items.length === 0) return ''
 
@@ -82,15 +82,21 @@ export const useCart = create<CartStore>()(
 
         msg += `\n*Total lista: $${base.toLocaleString('es-AR')}*`
 
+        if (triviaDiscount) {
+          msg += `\n🎯 *Descuento trivia: −5%*`
+        }
+
         if (paymentMethod === 'efectivo') {
-          const final = Math.round(base * 0.95)
+          const eff = triviaDiscount ? Math.round(base * 0.95 * 0.95) : Math.round(base * 0.95)
           msg += `\n💵 *Método de pago: Efectivo*`
-          msg += `\n✅ *Total con 5% off: $${final.toLocaleString('es-AR')}*`
+          msg += `\n✅ *Total con descuento: $${eff.toLocaleString('es-AR')}*`
         } else if (paymentMethod === 'transferencia') {
+          const final = triviaDiscount ? Math.round(base * 0.95) : base
           msg += `\n🏦 *Método de pago: Transferencia bancaria*`
-          msg += `\n✅ *Total: $${base.toLocaleString('es-AR')}*`
+          msg += `\n✅ *Total: $${final.toLocaleString('es-AR')}*`
         } else if (paymentMethod === 'cuotas') {
-          const cuota = Math.ceil(base / 0.894 / 3)
+          const after = triviaDiscount ? Math.round(base * 0.95) : base
+          const cuota = Math.ceil(after / 0.894 / 3)
           msg += `\n💳 *Método de pago: 3 cuotas (Mercado Pago)*`
           msg += `\n✅ *3 cuotas de $${cuota.toLocaleString('es-AR')}* (no disponible con Amex)`
         }
