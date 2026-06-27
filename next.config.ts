@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['@afipsdk/afip.js', 'node-soap'],
   images: {
     remotePatterns: [
       {
