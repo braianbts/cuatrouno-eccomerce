@@ -25,6 +25,7 @@ function parseVariants(flavor: string | null): Variant[] | null {
 export default function ProductoPage() {
   const { slug } = useParams<{ slug: string }>()
   const [product, setProduct] = useState<Product | null>(null)
+  const [related, setRelated] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedImg, setSelectedImg] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -39,6 +40,14 @@ export default function ProductoPage() {
         setLoading(false)
         const variants = parseVariants(data?.flavor ?? null)
         if (variants) setSelectedVariant(variants[0])
+        if (data) {
+          supabase.from('products').select('*')
+            .eq('category', data.category)
+            .neq('slug', data.slug)
+            .eq('active', true)
+            .limit(4)
+            .then(({ data: rel }) => setRelated(rel ?? []))
+        }
       })
   }, [slug])
 
@@ -225,6 +234,11 @@ export default function ProductoPage() {
               >
                 {activeStock > 0 ? 'En stock' : 'Sin stock'}
               </span>
+              {activeStock > 0 && activeStock <= 5 && (
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 animate-pulse" style={{ backgroundColor: 'rgba(234,179,8,0.1)', color: '#ca8a04' }}>
+                  ⚡ ¡Solo quedan {activeStock}!
+                </span>
+              )}
             </div>
 
             {activeStock > 0 && (
@@ -266,6 +280,40 @@ export default function ProductoPage() {
           </div>
         </div>
       </div>
+
+      {/* Related products */}
+      {related.length > 0 && (
+        <div className="border-t border-black/5 mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-black/30 mb-8">También te puede interesar</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {related.map((p) => {
+                const relDiscount = p.compare_price
+                  ? Math.round(((p.compare_price - p.price) / p.compare_price) * 100)
+                  : null
+                return (
+                  <Link key={p.id} href={`/producto/${p.slug}`} className="group bg-white border border-black/5 hover:border-[#C41515]/30 transition-all flex flex-col">
+                    <div className="relative aspect-square bg-white overflow-hidden">
+                      {p.images?.[0] ? (
+                        <Image src={p.images[0]} alt={p.name} fill className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-black/10 text-2xl font-black">C1</div>
+                      )}
+                      {relDiscount && (
+                        <span className="absolute top-0 left-0 text-white text-[9px] font-black px-1.5 py-0.5" style={{ backgroundColor: '#C41515' }}>-{relDiscount}%</span>
+                      )}
+                    </div>
+                    <div className="p-3 border-t border-black/5 flex-1 flex flex-col justify-between">
+                      <p className="text-black/80 font-bold text-[11px] uppercase leading-tight line-clamp-2 group-hover:text-black transition-colors mb-2">{p.name}</p>
+                      <span className="font-black text-base" style={{ color: '#C41515' }}>${p.price.toLocaleString('es-AR')}</span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
