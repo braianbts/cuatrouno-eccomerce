@@ -557,7 +557,7 @@ const parseGrupoId = (notas: string | null | undefined) => { const m = (notas ||
 const parseNotas = (notas: string | null | undefined) => (notas || '').replace(/^__g:[^_]+__\|/, '')
 type VentaGrupo = { grupoId: string | null; key: string; items: Venta[]; descuento: number; total: number; fecha: string; metodo_pago: string; notas: string }
 
-function buildAfipVisorUrl(v: Venta, puntoVenta = 4): string {
+function buildAfipVisorUrl(v: Venta, grupoTotal: number, puntoVenta = 4): string {
   const data = {
     ver: 1,
     fecha: v.created_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
@@ -565,7 +565,7 @@ function buildAfipVisorUrl(v: Venta, puntoVenta = 4): string {
     ptoVta: puntoVenta,
     tipoCmp: 11,
     nroCmp: v.factura_numero,
-    importe: v.total,
+    importe: grupoTotal,
     moneda: 'PES',
     ctz: 1,
     tipoDocRec: 99,
@@ -684,7 +684,7 @@ function VentasTab() {
                   </div>
                   <p className="text-yellow-400 font-black text-sm flex-shrink-0">{fmt(g.total)}</p>
                   {g.items[0]?.factura_emitida
-                    ? <button onClick={e => { e.stopPropagation(); window.open(buildAfipVisorUrl(g.items[0]), '_blank') }} className="text-[9px] font-black uppercase tracking-wider text-emerald-400 border border-emerald-400/30 hover:border-emerald-400 px-1.5 py-0.5 rounded flex-shrink-0 transition-colors">F.C #{g.items[0].factura_numero}</button>
+                    ? <button onClick={e => { e.stopPropagation(); window.open(buildAfipVisorUrl(g.items[0], g.total, 4), '_blank') }} className="text-[9px] font-black uppercase tracking-wider text-emerald-400 border border-emerald-400/30 hover:border-emerald-400 px-1.5 py-0.5 rounded flex-shrink-0 transition-colors">F.C #{g.items[0].factura_numero}</button>
                     : <button onClick={e => { e.stopPropagation(); emitirFactura(g) }} disabled={emitiendo === g.key} className="text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white border border-zinc-700 hover:border-white/40 px-1.5 py-0.5 rounded flex-shrink-0 transition-colors disabled:opacity-50">{emitiendo === g.key ? '...' : 'Facturar'}</button>
                   }
                   {isMulti && <span className="text-zinc-500 text-[10px]">{isOpen ? '▲' : '▼'}</span>}
