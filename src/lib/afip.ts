@@ -1,19 +1,15 @@
 import Afip from '@afipsdk/afip.js'
 import path from 'path'
 import fs from 'fs'
-import os from 'os'
 
 let afipInstance: InstanceType<typeof Afip> | null = null
 
-function resolveCertPath(envVar: string, fallbackPath: string): string {
+function resolvePemContent(envVar: string, fallbackPath: string): string {
   const b64 = process.env[envVar]
   if (b64) {
-    // Env var contiene el PEM en base64 → escribir a temp file
-    const tmp = path.join(os.tmpdir(), `afip_${envVar}.pem`)
-    fs.writeFileSync(tmp, Buffer.from(b64, 'base64').toString('utf8'))
-    return tmp
+    return Buffer.from(b64, 'base64').toString('utf8')
   }
-  return fallbackPath
+  return fs.readFileSync(fallbackPath, 'utf8')
 }
 
 export function getAfip() {
@@ -22,15 +18,15 @@ export function getAfip() {
   const cuit = Number(process.env.AFIP_CUIT)
   if (!cuit) throw new Error('AFIP_CUIT no configurado')
 
-  const certPath = resolveCertPath('AFIP_CERT', path.join(process.cwd(), 'afip/cert.pem'))
-  const keyPath  = resolveCertPath('AFIP_KEY',  path.join(process.cwd(), 'afip/key.pem'))
+  const cert = resolvePemContent('AFIP_CERT', path.join(process.cwd(), 'afip/cert.pem'))
+  const key  = resolvePemContent('AFIP_KEY',  path.join(process.cwd(), 'afip/key.pem'))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   afipInstance = new (Afip as any)({
     CUIT: cuit,
     production: process.env.AFIP_PRODUCTION === 'true',
-    cert: certPath,
-    key:  keyPath,
+    cert,
+    key,
     access_token: process.env.AFIP_ACCESS_TOKEN,
   })
 
