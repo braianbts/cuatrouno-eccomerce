@@ -31,6 +31,7 @@ export function getAfip() {
     production: process.env.AFIP_PRODUCTION === 'true',
     cert: certPath,
     key:  keyPath,
+    access_token: process.env.AFIP_ACCESS_TOKEN,
   })
 
   return afipInstance
