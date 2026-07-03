@@ -27,13 +27,17 @@ export async function POST(req: NextRequest) {
 
     const rows: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null })
 
-    // Find GENTECH start row
+    // Find GENTECH start row — search any cell in each row
     let startRow = -1
     for (let i = 0; i < rows.length; i++) {
-      const first = String(rows[i][0] ?? '').trim()
-      if (first.toUpperCase() === 'GENTECH') { startRow = i; break }
+      const hasGentech = rows[i].some(cell => String(cell ?? '').trim().toUpperCase() === 'GENTECH')
+      if (hasGentech) { startRow = i; break }
     }
-    if (startRow === -1) return NextResponse.json({ error: 'GENTECH section not found' }, { status: 400 })
+    if (startRow === -1) {
+      // Debug: return first 5 non-empty rows to diagnose
+      const sample = rows.filter(r => r.some(c => c !== null)).slice(120, 130).map(r => r.map(c => String(c ?? '')).join('|'))
+      return NextResponse.json({ error: 'GENTECH section not found', sample }, { status: 400 })
+    }
 
     const products: {
       cod: string; marca: string; descripcion: string
