@@ -38,17 +38,19 @@ export default function MayoristaPage() {
     e.preventDefault()
     const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
     const tipoLabel = tiposNegocio.find(t => t.value === form.tipo)?.label || form.tipo
-    const texto = [
-      '🏪 *Consulta Mayorista — Cuatrouno Suplementos*',
+    const lineas = [
+      '*Consulta Canal Mayorista*',
+      '_Cuatrouno Suplementos_',
       '',
-      `👤 *Nombre:* ${form.nombre}`,
-      `🏢 *Negocio:* ${form.negocio || '-'}`,
-      `📋 *Tipo:* ${tipoLabel}`,
-      `🪪 *CUIT:* ${form.cuit || '-'}`,
-      `📍 *Ciudad:* ${form.ciudad}`,
-      `📱 *Teléfono:* ${form.telefono}`,
-      form.mensaje ? `💬 *Intereses:* ${form.mensaje}` : '',
-    ].filter(Boolean).join('\n')
+      `• *Nombre:* ${form.nombre}`,
+      form.negocio ? `• *Negocio:* ${form.negocio}` : null,
+      `• *Tipo:* ${tipoLabel}`,
+      form.cuit ? `• *CUIT:* ${form.cuit}` : null,
+      `• *Ciudad:* ${form.ciudad}`,
+      `• *Tel:* ${form.telefono}`,
+      form.mensaje ? `\n• *Me interesan:* ${form.mensaje}` : null,
+    ].filter(Boolean) as string[]
+    const texto = lineas.join('\n')
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(texto)}`, '_blank')
     setEnviado(true)
   }
