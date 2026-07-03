@@ -15,6 +15,7 @@ export type Product = {
   slug: string
   description: string
   price: number
+  costo: number | null
   compare_price: number | null
   images: string[]
   category: string

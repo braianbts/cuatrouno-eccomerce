@@ -45,6 +45,7 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
     description: product?.description || '',
     price: product?.price?.toString() || '',
     compare_price: product?.compare_price?.toString() || '',
+    costo: product?.costo?.toString() || '',
     category: product?.category || 'proteinas',
     stock: product?.stock?.toString() || '0',
     brand: product?.brand || '',
@@ -122,6 +123,7 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
       description: form.description,
       price: parseFloat(form.price),
       compare_price: form.compare_price ? parseFloat(form.compare_price) : null,
+      costo: form.costo ? parseFloat(form.costo) : null,
       category: form.category,
       stock: stockValue,
       brand: form.brand,
@@ -262,6 +264,17 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
                 onChange={handleChange}
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
                 placeholder="18000"
+              />
+            </div>
+            <div>
+              <label className="text-zinc-400 text-sm mb-1 block">Costo</label>
+              <input
+                name="costo"
+                type="number"
+                value={form.costo}
+                onChange={handleChange}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
+                placeholder="0"
               />
             </div>
             {/* Stock: show per-variant editors if product has variants, else single field */}

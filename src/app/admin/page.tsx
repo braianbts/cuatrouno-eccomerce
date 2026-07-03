@@ -153,7 +153,7 @@ function VentaForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
   }
 
   const selectProduct = (i: number, p: Product) => {
-    updateItem(i, { query: p.name, producto: p.name, categoria: p.category || 'otros', precio_unitario: p.price, selectedProduct: p })
+    updateItem(i, { query: p.name, producto: p.name, categoria: p.category || 'otros', precio_unitario: p.price, costo: p.costo ?? 0, selectedProduct: p })
     setActiveIdx(null)
   }
 
