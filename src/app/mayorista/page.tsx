@@ -83,7 +83,7 @@ export default function MayoristaPage() {
       <div className="relative overflow-hidden bg-zinc-950">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.06),transparent_60%)]" />
         <div className="relative max-w-5xl mx-auto px-6 py-20 flex flex-col items-center text-center">
-          <Image src="/logo.png" alt="Cuatrouno Suplementos" width={420} height={146} className="mb-10 opacity-95" />
+          <Image src="/logo.png" alt="Cuatrouno Suplementos" width={420} height={146} className="mb-4 opacity-95" />
           <span className="inline-block border border-yellow-400/30 text-yellow-400 text-[11px] font-bold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full mb-6">
             Canal Mayorista
           </span>
