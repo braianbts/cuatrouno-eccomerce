@@ -182,9 +182,11 @@ export default async function HomePage() {
         </div>
         <Link
           href="/mayorista"
-          className="shrink-0 inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-black px-6 py-3 rounded-xl text-sm transition-colors"
+          className="group relative shrink-0 inline-flex items-center gap-3 overflow-hidden font-black px-8 py-4 text-xs uppercase tracking-widest transition-all hover:scale-[1.02] bg-yellow-400 text-black"
         >
-          Canal Mayorista →
+          <span className="relative z-10">Canal Mayorista</span>
+          <span className="relative z-10 group-hover:translate-x-1 transition-transform">→</span>
+          <span className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </Link>
         </div>
       </section>
