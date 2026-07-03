@@ -8,7 +8,7 @@ type TipoNegocio = 'gym' | 'dietetica' | 'revendedor' | 'particular' | ''
 
 const tiposNegocio = [
   { value: 'gym',        label: 'Gym / Centro Fitness',      icon: Dumbbell,   desc: 'Gimnasios y centros deportivos' },
-  { value: 'dietetica',  label: 'Dietética / Herboristería', icon: Salad,      desc: 'Tiendas de productos naturales' },
+  { value: 'dietetica',  label: 'Dietética', icon: Salad,      desc: 'Tiendas de productos naturales' },
   { value: 'revendedor', label: 'Revendedor / Negocio',      icon: Building2,  desc: 'Comercios y distribuidores' },
   { value: 'particular', label: 'Particular',                icon: User,       desc: 'Compra personal en volumen' },
 ] as const
@@ -82,9 +82,9 @@ export default function MayoristaPage() {
       {/* Hero */}
       <div className="relative overflow-hidden bg-zinc-950">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(250,204,21,0.06),transparent_60%)]" />
-        <div className="relative max-w-5xl mx-auto px-6 py-20 flex flex-col items-center text-center">
-          <Image src="/logo.png" alt="Cuatrouno Suplementos" width={420} height={146} className="mb-4 opacity-95" />
-          <span className="inline-block border border-yellow-400/30 text-yellow-400 text-[11px] font-bold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full mb-6">
+        <div className="relative max-w-5xl mx-auto px-6 py-1 flex flex-col items-center text-center">
+          <Image src="/logo.png" alt="Cuatrouno Suplementos" width={250} height={146} className="mb-1 opacity-95" />
+          <span className="inline-block border border-yellow-400/30 text-yellow-400 text-[11px] font-bold tracking-[0.2em] uppercase px-4 py-3 rounded-full mb-6">
             Canal Mayorista
           </span>
           <h1 className="text-white text-4xl md:text-6xl font-black leading-[1.05] mb-5 max-w-2xl">
@@ -98,7 +98,7 @@ export default function MayoristaPage() {
       </div>
 
       {/* Separador */}
-      <div className="h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+      <div className="h-px bg-gradient-to-r mt-10 from-transparent via-zinc-700 to-transparent" />
 
       {/* Beneficios */}
       <div className="max-w-5xl mx-auto px-6 py-16">
