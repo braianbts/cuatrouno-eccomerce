@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, Product } from '@/lib/supabase'
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, LogOut, Package, BarChart2, ShoppingBag, TrendingDown, RefreshCw, DollarSign, X, Check, ChevronDown, Activity } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, LogOut, Package, BarChart2, ShoppingBag, TrendingDown, RefreshCw, DollarSign, X, Check, ChevronDown, Activity, Upload, Store } from 'lucide-react'
 import ProductForm from '@/components/admin/ProductForm'
 import Image from 'next/image'
 
@@ -75,6 +75,7 @@ const TABS = [
   { id: 'caja', label: 'Caja', icon: DollarSign },
   { id: 'productos', label: 'Productos', icon: Package },
   { id: 'visitas', label: 'Visitas', icon: Activity },
+  { id: 'mayorista', label: 'Mayorista', icon: Store },
 ]
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
@@ -1166,6 +1167,85 @@ function VisitasTab() {
   )
 }
 
+// ─── Mayorista Tab ────────────────────────────────────────────────────────────
+
+function MayoristaTab() {
+  const [uploading, setUploading] = useState(false)
+  const [result, setResult] = useState<{ ok?: boolean; count?: number; error?: string } | null>(null)
+  const [count, setCount] = useState<number | null>(null)
+  const [lastUpdate, setLastUpdate] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.from('lista_mayorista').select('id, updated_at', { count: 'exact' }).limit(1).then(({ count: c, data }) => {
+      setCount(c ?? 0)
+      if (data?.[0]?.updated_at) {
+        setLastUpdate(new Date(data[0].updated_at).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))
+      }
+    })
+  }, [result])
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setResult(null)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/admin/upload-lista', { method: 'POST', body: fd })
+    const json = await res.json()
+    setResult(json)
+    setUploading(false)
+    e.target.value = ''
+  }
+
+  return (
+    <div className="space-y-6 max-w-xl">
+      <div>
+        <h2 className="text-white font-black text-xl mb-1">Lista de Precios Mayorista</h2>
+        <p className="text-zinc-500 text-sm">Subí el Excel del proveedor cada semana. Se parsea automáticamente y actualiza la lista pública.</p>
+      </div>
+
+      {/* Estado actual */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-2">
+        <p className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Estado actual</p>
+        <div className="flex items-center justify-between">
+          <span className="text-white">{count !== null ? `${count} productos cargados` : '—'}</span>
+          {lastUpdate && <span className="text-zinc-600 text-xs">Última actualización: {lastUpdate}</span>}
+        </div>
+        <a href="/mayorista/precios" target="_blank" className="inline-block text-yellow-400 text-xs hover:underline">
+          Ver lista pública →
+        </a>
+      </div>
+
+      {/* Upload */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+        <p className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-4">Subir nueva lista</p>
+        <label className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl px-6 py-10 cursor-pointer transition-colors ${uploading ? 'border-zinc-700 opacity-50 cursor-not-allowed' : 'border-zinc-700 hover:border-yellow-400'}`}>
+          <Upload size={28} className="text-zinc-500" />
+          <div className="text-center">
+            <p className="text-white font-semibold text-sm">{uploading ? 'Procesando...' : 'Seleccioná el archivo .xlsx'}</p>
+            <p className="text-zinc-600 text-xs mt-1">El sistema parsea desde la sección GENTECH en adelante con +15% de markup</p>
+          </div>
+          <input type="file" accept=".xlsx" disabled={uploading} onChange={handleFile} className="hidden" />
+        </label>
+      </div>
+
+      {/* Resultado */}
+      {result && (
+        <div className={`rounded-xl px-4 py-3 text-sm font-semibold ${result.ok ? 'bg-green-900/30 border border-green-800 text-green-400' : 'bg-red-900/30 border border-red-800 text-red-400'}`}>
+          {result.ok ? `✓ ${result.count} productos importados correctamente` : `✗ Error: ${result.error}`}
+        </div>
+      )}
+
+      <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-xs text-zinc-500 space-y-1">
+        <p>• Solo carga productos desde <strong className="text-zinc-400">GENTECH</strong> en adelante (excluye las ofertas)</p>
+        <p>• Markup aplicado: <strong className="text-zinc-400">+15%</strong> sobre precio del proveedor</p>
+        <p>• Cada upload reemplaza toda la lista anterior</p>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -1278,6 +1358,7 @@ export default function AdminPage() {
         {activeTab === 'caja' && <CajaTab />}
         {activeTab === 'productos' && <ProductosTab />}
         {activeTab === 'visitas' && <VisitasTab />}
+        {activeTab === 'mayorista' && <MayoristaTab />}
       </div>
     </div>
   )
