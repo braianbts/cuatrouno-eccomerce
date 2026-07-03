@@ -174,7 +174,8 @@ export default async function HomePage() {
       </section>
 
       {/* Canal mayorista */}
-      <section className="bg-zinc-950 border-t border-zinc-900 px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-5xl mx-auto">
+      <section className="bg-zinc-950 border-t border-zinc-800 px-6 py-10">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <p className="text-white font-black text-lg leading-tight">¿Tenés un gym, dietética o negocio?</p>
           <p className="text-zinc-500 text-sm mt-1">Accedé a precios mayoristas y condiciones especiales.</p>
@@ -185,6 +186,7 @@ export default async function HomePage() {
         >
           Canal Mayorista →
         </Link>
+        </div>
       </section>
     </div>
   )

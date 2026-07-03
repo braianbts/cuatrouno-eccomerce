@@ -33,6 +33,9 @@ export default function Navbar() {
               <Link href="/productos" className="text-white/50 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
                 Productos
               </Link>
+              <Link href="/mayorista" className="text-yellow-400/70 hover:text-yellow-400 text-xs font-bold uppercase tracking-widest transition-colors">
+                Mayorista
+              </Link>
             </div>
 
             <div className="flex items-center gap-2">
@@ -55,6 +58,7 @@ export default function Navbar() {
           <div className="md:hidden bg-black border-t border-white/5 px-4 py-5 flex flex-col gap-5">
             <Link href="/" onClick={() => setMenuOpen(false)} className="text-white/60 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Inicio</Link>
             <Link href="/productos" onClick={() => setMenuOpen(false)} className="text-white/60 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Productos</Link>
+            <Link href="/mayorista" onClick={() => setMenuOpen(false)} className="text-yellow-400/70 hover:text-yellow-400 text-xs font-bold uppercase tracking-widest transition-colors">Mayorista</Link>
           </div>
         )}
       </nav>
