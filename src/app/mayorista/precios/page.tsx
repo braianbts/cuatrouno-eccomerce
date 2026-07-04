@@ -72,6 +72,8 @@ export default function PreciosMayoristaPage() {
       `*TOTAL: ${fmt(cartTotal)}*`,
     ]
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(lineas.join('\n'))}`, '_blank')
+    setCart({})
+    setCartOpen(false)
   }
 
   const updatedAt = productos[0]?.updated_at
