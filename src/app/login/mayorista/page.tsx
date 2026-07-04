@@ -32,11 +32,17 @@ function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <input
+        type="text"
+        placeholder="Usuario"
+        autoComplete="username"
+        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
+      />
+      <input
         type="password"
         value={password}
         onChange={e => setPassword(e.target.value)}
-        placeholder="Contraseña mayorista"
-        autoFocus
+        placeholder="Contraseña"
+        autoComplete="current-password"
         className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-yellow-400 transition-colors"
       />
       {error && <p className="text-red-400 text-sm">{error}</p>}
