@@ -1239,7 +1239,7 @@ function MayoristaTab() {
 
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-xs text-zinc-500 space-y-1">
         <p>• Solo carga productos desde <strong className="text-zinc-400">GENTECH</strong> en adelante (excluye las ofertas)</p>
-        <p>• Markup aplicado: <strong className="text-zinc-400">+15%</strong> sobre precio del proveedor</p>
+        <p>• Markup aplicado: <strong className="text-zinc-400">+25%</strong> sobre precio del proveedor</p>
         <p>• Cada upload reemplaza toda la lista anterior</p>
       </div>
     </div>
