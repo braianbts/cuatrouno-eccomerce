@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { createClient } from '@supabase/supabase-js'
 
-const MARKUP = 1.25 // 25% sobre costo
+const MARKUP = 1.27 // 27% sobre costo
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
