@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useTrivia } from '@/store/trivia'
 import { X, Tag, Trophy } from 'lucide-react'
 
@@ -38,8 +39,11 @@ const QUESTIONS = [
 ]
 
 export default function TriviaWidget() {
+  const pathname = usePathname()
   const { hasDiscount, setDiscount } = useTrivia()
   const [open, setOpen] = useState(false)
+
+  if (pathname.startsWith('/mayorista') || pathname.startsWith('/admin')) return null
   const [qIndex] = useState(() => Math.floor(Math.random() * QUESTIONS.length))
   const [selected, setSelected] = useState<number | null>(null)
   const [submitted, setSubmitted] = useState(false)
