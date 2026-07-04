@@ -87,6 +87,23 @@ export default function PreciosMayoristaPage() {
           <Link href="/mayorista" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-300 text-xs mb-5 transition-colors">
             <ArrowLeft size={14} /> Volver
           </Link>
+
+          {/* Info banner */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
+              <p className="text-yellow-400 font-black text-sm">🚚 Entrega sin costo</p>
+              <p className="text-zinc-400 text-xs mt-0.5">Zona Norte GBA — incluida en tu pedido</p>
+            </div>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
+              <p className="text-yellow-400 font-black text-sm">💳 Pago anticipado</p>
+              <p className="text-zinc-400 text-xs mt-0.5">El pedido se gestiona una vez confirmado el pago</p>
+            </div>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
+              <p className="text-yellow-400 font-black text-sm">📦 Plazo de entrega</p>
+              <p className="text-zinc-400 text-xs mt-0.5">3 a 5 días hábiles desde la confirmación</p>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <Image src="/logo.png" alt="Cuatrouno" width={120} height={42} className="mb-3 opacity-90" />
