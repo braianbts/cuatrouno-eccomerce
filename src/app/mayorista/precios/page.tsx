@@ -91,18 +91,21 @@ export default function PreciosMayoristaPage() {
           </Link>
 
           {/* Info banner */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
-              <p className="text-yellow-400 font-black text-sm">🚚 Entrega sin costo</p>
-              <p className="text-zinc-400 text-xs mt-0.5">Zona Norte GBA — incluida en tu pedido</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-5">
+              <p className="text-2xl mb-2">🚚</p>
+              <p className="text-white font-black text-base">Entrega sin costo</p>
+              <p className="text-zinc-400 text-sm mt-1">Zona Norte GBA — incluida en tu pedido</p>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
-              <p className="text-yellow-400 font-black text-sm">💳 Pago anticipado</p>
-              <p className="text-zinc-400 text-xs mt-0.5">El pedido se gestiona una vez confirmado el pago</p>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-5">
+              <p className="text-2xl mb-2">💳</p>
+              <p className="text-white font-black text-base">Pago anticipado</p>
+              <p className="text-zinc-400 text-sm mt-1">El pedido se gestiona una vez confirmado el pago</p>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
-              <p className="text-yellow-400 font-black text-sm">📦 Plazo de entrega</p>
-              <p className="text-zinc-400 text-xs mt-0.5">3 a 5 días hábiles desde la confirmación</p>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-5">
+              <p className="text-2xl mb-2">📦</p>
+              <p className="text-white font-black text-base">Plazo de entrega</p>
+              <p className="text-zinc-400 text-sm mt-1">3 a 5 días hábiles desde la confirmación</p>
             </div>
           </div>
 
