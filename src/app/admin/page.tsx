@@ -726,21 +726,44 @@ function VentasTab() {
 
 // ─── Gastos Tab ───────────────────────────────────────────────────────────────
 
+const CAT_COLORS: Record<string, string> = {
+  mercaderia:    'bg-blue-900/60 text-blue-300 border-blue-800',
+  alquiler:      'bg-red-900/60 text-red-300 border-red-800',
+  servicios:     'bg-yellow-900/60 text-yellow-300 border-yellow-800',
+  marketing:     'bg-purple-900/60 text-purple-300 border-purple-800',
+  logistica:     'bg-green-900/60 text-green-300 border-green-800',
+  administrativo:'bg-zinc-800 text-zinc-300 border-zinc-700',
+  varios:        'bg-zinc-800/50 text-zinc-400 border-zinc-700',
+}
+const CAT_EMOJI: Record<string, string> = {
+  mercaderia: '📦', alquiler: '🏠', servicios: '⚡', marketing: '📣',
+  logistica: '🚚', administrativo: '📋', varios: '💼',
+}
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+
 function GastosTab() {
+  const now = new Date()
+  const [mesIdx, setMesIdx] = useState(now.getMonth())
+  const [anio, setAnio] = useState(now.getFullYear())
   const [gastos, setGastos] = useState<Gasto[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [catFiltro, setCatFiltro] = useState('todas')
+
+  const mesStr = `${anio}-${String(mesIdx + 1).padStart(2, '0')}`
 
   const fetch_ = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase.from('gastos').select('*').order('fecha', { ascending: false }).limit(200)
+    const { data } = await supabase
+      .from('gastos').select('*')
+      .gte('fecha', `${mesStr}-01`)
+      .lte('fecha', `${mesStr}-31`)
+      .order('fecha', { ascending: false })
     setGastos(data || [])
     setLoading(false)
-  }, [])
+  }, [mesStr])
 
   useEffect(() => { fetch_() }, [fetch_])
-
-  const total = gastos.reduce((s, g) => s + g.monto, 0)
 
   const del = async (id: string) => {
     if (!confirm('¿Eliminar este gasto?')) return
@@ -748,39 +771,101 @@ function GastosTab() {
     setGastos(prev => prev.filter(g => g.id !== id))
   }
 
-  const CAT_COLORS: Record<string, string> = { mercaderia: 'bg-blue-900 text-blue-300', alquiler: 'bg-red-900 text-red-300', servicios: 'bg-yellow-900 text-yellow-300', marketing: 'bg-purple-900 text-purple-300', logistica: 'bg-green-900 text-green-300', administrativo: 'bg-zinc-700 text-zinc-300', varios: 'bg-zinc-800 text-zinc-400' }
+  const prevMes = () => { if (mesIdx === 0) { setMesIdx(11); setAnio(a => a - 1) } else setMesIdx(m => m - 1) }
+  const nextMes = () => { if (mesIdx === 11) { setMesIdx(0); setAnio(a => a + 1) } else setMesIdx(m => m + 1) }
+
+  const total = gastos.reduce((s, g) => s + g.monto, 0)
+
+  // Totales por categoría
+  const porCat = gastos.reduce<Record<string, number>>((acc, g) => {
+    acc[g.categoria] = (acc[g.categoria] || 0) + g.monto
+    return acc
+  }, {})
+  const catOrdenadas = Object.entries(porCat).sort((a, b) => b[1] - a[1])
+
+  const filtrados = catFiltro === 'todas' ? gastos : gastos.filter(g => g.categoria === catFiltro)
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-white font-black">{gastos.length} gastos</p>
-          <p className="text-red-400 text-sm font-bold">{fmt(total)}</p>
+    <div className="space-y-5">
+      {/* Navegación de mes */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={prevMes} className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center text-lg">‹</button>
+          <div className="text-center min-w-[140px]">
+            <p className="text-white font-black text-lg">{MESES[mesIdx]}</p>
+            <p className="text-zinc-500 text-xs">{anio}</p>
+          </div>
+          <button onClick={nextMes} className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center text-lg">›</button>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-red-500 hover:bg-red-400 text-white font-black px-4 py-2 rounded-xl text-sm">
-          <Plus size={16} /> Nuevo Gasto
+        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-red-500 hover:bg-red-400 text-white font-black px-4 py-2.5 rounded-xl text-sm">
+          <Plus size={15} /> Nuevo gasto
         </button>
       </div>
 
       {showForm && <GastoForm onClose={() => setShowForm(false)} onSave={() => { setShowForm(false); fetch_() }} />}
 
-      {loading ? <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="bg-zinc-900 rounded-xl h-14 animate-pulse" />)}</div> : (
-        <div className="space-y-2">
-          {gastos.map(g => (
-            <div key={g.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-semibold truncate">{g.descripcion}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${CAT_COLORS[g.categoria] || 'bg-zinc-800 text-zinc-400'}`}>{g.categoria}</span>
-                  <span className="text-zinc-500 text-xs">{g.fecha} · {g.metodo_pago}</span>
-                </div>
-              </div>
-              <p className="text-red-400 font-black text-sm">{fmt(g.monto)}</p>
-              <button onClick={() => del(g.id)} className="text-zinc-600 hover:text-red-400 p-1"><Trash2 size={14} /></button>
+      {loading ? (
+        <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="bg-zinc-900 rounded-xl h-14 animate-pulse" />)}</div>
+      ) : (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="col-span-2 sm:col-span-1 bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+              <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Total del mes</p>
+              <p className="text-red-400 font-black text-2xl">{fmt(total)}</p>
+              <p className="text-zinc-600 text-xs mt-1">{gastos.length} gastos registrados</p>
             </div>
-          ))}
-          {gastos.length === 0 && <p className="text-zinc-600 text-center py-12 text-sm">Sin gastos registrados</p>}
-        </div>
+            {catOrdenadas.slice(0, 4).map(([cat, monto]) => (
+              <div key={cat} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+                <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">{CAT_EMOJI[cat]} {cat}</p>
+                <p className="text-white font-black text-lg">{fmt(monto)}</p>
+                <p className="text-zinc-600 text-xs mt-1">{total > 0 ? Math.round(monto / total * 100) : 0}% del total</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Barra de distribución */}
+          {catOrdenadas.length > 0 && (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+              <p className="text-zinc-500 text-xs uppercase tracking-wider mb-3">Distribución por categoría</p>
+              <div className="flex rounded-full overflow-hidden h-3 mb-3">
+                {catOrdenadas.map(([cat, monto]) => (
+                  <div key={cat} title={cat} style={{ width: `${(monto / total) * 100}%` }}
+                    className={`h-full ${cat === 'mercaderia' ? 'bg-blue-500' : cat === 'alquiler' ? 'bg-red-500' : cat === 'servicios' ? 'bg-yellow-500' : cat === 'marketing' ? 'bg-purple-500' : cat === 'logistica' ? 'bg-green-500' : 'bg-zinc-600'}`} />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {catOrdenadas.map(([cat, monto]) => (
+                  <button key={cat} onClick={() => setCatFiltro(catFiltro === cat ? 'todas' : cat)}
+                    className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-lg border transition-all ${catFiltro === cat ? CAT_COLORS[cat] || 'bg-zinc-700 text-zinc-300 border-zinc-600' : 'bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}>
+                    <span>{CAT_EMOJI[cat]}</span> {cat} · {fmt(monto)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Lista */}
+          <div className="space-y-2">
+            {filtrados.length === 0 ? (
+              <p className="text-zinc-600 text-center py-12 text-sm">Sin gastos registrados este mes</p>
+            ) : filtrados.map(g => (
+              <div key={g.id} className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-3 flex items-center gap-3 transition-colors">
+                <span className="text-xl">{CAT_EMOJI[g.categoria] || '💼'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-semibold truncate">{g.descripcion}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${CAT_COLORS[g.categoria] || 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>{g.categoria}</span>
+                    <span className="text-zinc-500 text-xs">{g.fecha} · {g.metodo_pago}</span>
+                    {g.notas && <span className="text-zinc-600 text-xs truncate hidden sm:inline">· {g.notas}</span>}
+                  </div>
+                </div>
+                <p className="text-red-400 font-black text-sm shrink-0">{fmt(g.monto)}</p>
+                <button onClick={() => del(g.id)} className="text-zinc-600 hover:text-red-400 p-1 shrink-0 transition-colors"><Trash2 size={14} /></button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
