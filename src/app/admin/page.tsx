@@ -358,20 +358,89 @@ function GastoForm({ onClose, onSave }: { onClose: () => void; onSave: () => voi
 function MovimientoForm({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
   const [form, setForm] = useState({ fecha: localDate(), producto: '', tipo: 'entrada', cantidad: 1, precio_unitario: 0, motivo: '' })
   const [saving, setSaving] = useState(false)
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [query, setQuery] = useState('')
+  const [showSugg, setShowSugg] = useState(false)
+
+  useEffect(() => {
+    supabase.from('products').select('*').eq('active', true).order('name').then(({ data }) => setAllProducts(data || []))
+  }, [])
+
+  const suggestions = () => {
+    const q = norm(query)
+    if (q.length < 2) return []
+    const matches = allProducts.filter(p => norm(p.name).includes(q))
+    const starts = matches.filter(p => norm(p.name).startsWith(q))
+    return [...starts, ...matches.filter(p => !norm(p.name).startsWith(q))].slice(0, 12)
+  }
+
+  const pickProduct = (p: Product) => {
+    setSelectedProduct(p)
+    setQuery(p.name)
+    setForm(f => ({ ...f, producto: p.name, precio_unitario: p.costo ?? 0 }))
+    setShowSugg(false)
+  }
 
   const save = async () => {
     if (!form.producto || !form.cantidad) return
     setSaving(true)
     const total = Number(form.precio_unitario) * Number(form.cantidad)
     await supabase.from('movimientos').insert({ ...form, total, cantidad: Number(form.cantidad), precio_unitario: Number(form.precio_unitario) })
+
+    if (form.tipo === 'entrada' && selectedProduct) {
+      const newStock = (selectedProduct.stock || 0) + Number(form.cantidad)
+      await supabase.from('products').update({ stock: newStock }).eq('id', selectedProduct.id)
+    }
+
+    if (form.tipo === 'entrada' && total > 0) {
+      await supabase.from('gastos').insert({
+        fecha: form.fecha,
+        descripcion: `Reposición: ${form.producto} x${form.cantidad}`,
+        categoria: 'mercaderia',
+        monto: total,
+        metodo_pago: 'efectivo',
+        notas: form.motivo || 'Auto-generado desde Movimientos',
+      })
+    }
+
     setSaving(false)
     onSave()
   }
 
+  const sugg = suggestions()
+
   return (
     <Modal title="Nuevo Movimiento" onClose={onClose}>
       <Field label="Fecha"><input type="date" className={inputCls} value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} /></Field>
-      <Field label="Producto"><input type="text" className={inputCls} placeholder="Ej: Star Whey 2lb" value={form.producto} onChange={e => setForm(f => ({ ...f, producto: e.target.value }))} /></Field>
+      <Field label="Producto">
+        <div className="relative">
+          <input
+            type="text"
+            className={inputCls}
+            placeholder="Buscar producto..."
+            value={query}
+            onChange={e => { setQuery(e.target.value); setForm(f => ({ ...f, producto: e.target.value })); setSelectedProduct(null); setShowSugg(true) }}
+            onFocus={() => query.length > 1 && setShowSugg(true)}
+            onBlur={() => setTimeout(() => setShowSugg(false), 150)}
+          />
+          {showSugg && sugg.length > 0 && (
+            <div className="absolute z-[100] top-full left-0 right-0 mt-1 bg-zinc-800 border border-zinc-600 rounded-xl shadow-2xl max-h-52 overflow-y-auto">
+              {sugg.map(p => (
+                <button key={p.id} type="button" onMouseDown={() => pickProduct(p)}
+                  className="w-full text-left px-3 py-2 hover:bg-zinc-700 transition-colors flex items-center justify-between gap-3 border-b border-zinc-700 last:border-0">
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-semibold truncate">{p.name}</p>
+                    <p className="text-zinc-400 text-xs">{p.category} · stock: {p.stock}</p>
+                  </div>
+                  {p.costo ? <p className="text-blue-400 text-sm font-black flex-shrink-0">costo: {fmt(p.costo)}</p> : null}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {selectedProduct && <p className="text-xs text-green-400 mt-1">✓ Stock actual: {selectedProduct.stock}</p>}
+      </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tipo">
           <select className={selectCls} value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
@@ -383,7 +452,16 @@ function MovimientoForm({ onClose, onSave }: { onClose: () => void; onSave: () =
         </Field>
         <Field label="Cantidad"><input type="number" className={inputCls} min="1" value={form.cantidad} onChange={e => setForm(f => ({ ...f, cantidad: Number(e.target.value) }))} /></Field>
       </div>
-      <Field label="Precio unitario (costo)"><input type="number" className={inputCls} placeholder="0" value={form.precio_unitario || ''} onChange={e => setForm(f => ({ ...f, precio_unitario: Number(e.target.value) }))} /></Field>
+      <Field label="Precio unitario (costo)">
+        <input type="number" className={inputCls} placeholder="0" value={form.precio_unitario || ''} onChange={e => setForm(f => ({ ...f, precio_unitario: Number(e.target.value) }))} />
+      </Field>
+      {form.tipo === 'entrada' && form.precio_unitario > 0 && (
+        <div className="bg-zinc-800 rounded-lg px-3 py-2 text-sm flex justify-between items-center">
+          <span className="text-zinc-400">Total compra</span>
+          <span className="text-yellow-400 font-black">{fmt(form.precio_unitario * form.cantidad)}</span>
+        </div>
+      )}
+      {form.tipo === 'entrada' && <p className="text-xs text-blue-400">Se registrará automáticamente como gasto en "mercadería".</p>}
       <Field label="Motivo"><input type="text" className={inputCls} placeholder="Ej: Reposición mensual" value={form.motivo} onChange={e => setForm(f => ({ ...f, motivo: e.target.value }))} /></Field>
       <button onClick={save} disabled={saving} className="w-full bg-blue-500 hover:bg-blue-400 disabled:opacity-50 text-white font-black py-3 rounded-xl mt-2">
         {saving ? 'Guardando...' : 'Registrar Movimiento'}
