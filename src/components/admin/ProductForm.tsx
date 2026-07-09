@@ -140,8 +140,21 @@ export default function ProductForm({ product, onClose, onSave }: Props) {
       else onSave()
     } else {
       const { error } = await supabase.from('products').insert(payload)
-      if (error) setError(error.message)
-      else onSave()
+      if (error) { setError(error.message); setSaving(false); return }
+
+      if (payload.costo && payload.stock > 0) {
+        const montoGasto = payload.costo * payload.stock
+        await supabase.from('gastos').insert({
+          fecha: new Date().toISOString().slice(0, 10),
+          descripcion: `Compra inicial: ${payload.name} x${payload.stock}`,
+          categoria: 'mercaderia',
+          monto: montoGasto,
+          metodo_pago: 'efectivo',
+          notas: 'Auto-generado al crear producto nuevo',
+        })
+      }
+
+      onSave()
     }
     setSaving(false)
   }
