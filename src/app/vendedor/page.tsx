@@ -8,6 +8,10 @@ import { useRouter } from 'next/navigation'
 
 const fmt = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n)
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const matchProduct = (p: Product, q: string) => {
+  const haystack = norm([p.name, p.brand, p.category, p.flavor].filter(Boolean).join(' '))
+  return norm(q).split(/\s+/).filter(Boolean).every(word => haystack.includes(word))
+}
 const localDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 
 type LineItem = { producto: string; categoria: string; cantidad: number; precio_unitario: number; costo: number; selectedProduct: Product | null; query: string }
@@ -68,11 +72,11 @@ export default function VendedorPage() {
   }
 
   const suggestions = (i: number) => {
-    const q = norm(items[i].query)
-    if (q.length < 2) return []
-    const matches = allProducts.filter(p => norm(p.name).includes(q))
-    const starts = matches.filter(p => norm(p.name).startsWith(q))
-    return [...starts, ...matches.filter(p => !norm(p.name).startsWith(q))].slice(0, 10)
+    const q = items[i].query
+    if (norm(q).length < 2) return []
+    const matches = allProducts.filter(p => matchProduct(p, q))
+    const starts = matches.filter(p => norm(p.name).startsWith(norm(q)))
+    return [...starts, ...matches.filter(p => !norm(p.name).startsWith(norm(q)))].slice(0, 10)
   }
 
   const subtotal = items.reduce((s, it) => s + it.precio_unitario * it.cantidad, 0)
