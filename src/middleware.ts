@@ -23,9 +23,19 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  if (pathname.startsWith('/vendedor')) {
+    const auth = req.cookies.get('vendedor_auth')?.value
+    if (auth !== 'ok') {
+      const url = req.nextUrl.clone()
+      url.pathname = '/login/vendedor'
+      url.searchParams.set('next', pathname)
+      return NextResponse.redirect(url)
+    }
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/mayorista/precios/:path*'],
+  matcher: ['/admin/:path*', '/mayorista/precios/:path*', '/vendedor/:path*'],
 }

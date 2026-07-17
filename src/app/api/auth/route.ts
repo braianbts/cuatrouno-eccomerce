@@ -19,5 +19,13 @@ export async function POST(req: NextRequest) {
     return res
   }
 
+  if (tipo === 'vendedor') {
+    const correct = process.env.VENDEDOR_PASSWORD || 'vendedor2025'
+    if (password !== correct) return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 })
+    const res = NextResponse.json({ ok: true })
+    res.cookies.set('vendedor_auth', 'ok', { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7 })
+    return res
+  }
+
   return NextResponse.json({ error: 'Tipo inválido' }, { status: 400 })
 }
