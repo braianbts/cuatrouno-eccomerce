@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { createClient } from '@supabase/supabase-js'
 
-const MARKUP = 1.27 // 27% sobre costo
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const MARKUP = 1.27
 
 function isNumericCod(val: unknown): boolean {
   if (val === null || val === undefined) return false
@@ -72,6 +67,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (products.length === 0) return NextResponse.json({ error: 'No products parsed' }, { status: 400 })
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     // Clear and reinsert
     await supabaseAdmin.from('lista_mayorista').delete().neq('id', '00000000-0000-0000-0000-000000000000')
